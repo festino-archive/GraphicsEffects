@@ -1,0 +1,5 @@
+﻿  scene_1.c
+C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\scene_1.c(80,17): warning C4305: 'function': truncation from 'double' to 'GLfloat'
+C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\scene_1.c(80,22): warning C4305: 'function': truncation from 'double' to 'GLfloat'
+C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\scene_1.c(80,27): warning C4305: 'function': truncation from 'double' to 'GLfloat'
+  GraphicsEffects.vcxproj -> C:\Users\angry\source\repos\GraphicsEffects\Debug\GraphicsEffects.exe
