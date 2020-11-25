@@ -95,7 +95,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>freeglut.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -114,7 +114,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>freeglut.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -129,7 +129,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>freeglut.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -148,12 +148,24 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>freeglut.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="main.c" />
-    <ClCompile Include="scene_1.c" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="example_1.cpp" />
+    <ClCompile Include="scene_1.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="example_1.h" />
+    <ClInclude Include="example_2.h" />
+    <ClInclude Include="example_3.h" />
+    <ClInclude Include="example_4.h" />
+    <ClInclude Include="test_shaders.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shader.frag" />
+    <None Include="shader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

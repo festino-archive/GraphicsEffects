@@ -13,13 +13,44 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Examples">
+      <UniqueIdentifier>{f22ecbf1-91fb-4afe-a4fb-6b3134724e7f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="scene_1.c">
+    <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="main.c">
+    <ClCompile Include="scene_1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="example_1.cpp">
+      <Filter>Examples</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="example_1.h">
+      <Filter>Examples</Filter>
+    </ClInclude>
+    <ClInclude Include="example_2.h">
+      <Filter>Examples</Filter>
+    </ClInclude>
+    <ClInclude Include="example_3.h">
+      <Filter>Examples</Filter>
+    </ClInclude>
+    <ClInclude Include="example_4.h">
+      <Filter>Examples</Filter>
+    </ClInclude>
+    <ClInclude Include="test_shaders.h">
+      <Filter>Examples</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shader.vert">
+      <Filter>Examples</Filter>
+    </None>
+    <None Include="shader.frag">
+      <Filter>Examples</Filter>
+    </None>
   </ItemGroup>
 </Project>
