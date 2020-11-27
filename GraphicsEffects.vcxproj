@@ -155,8 +155,10 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="example_1.cpp" />
     <ClCompile Include="scene_1.cpp" />
+    <ClCompile Include="scene_1.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="example_1.h" />
     <ClInclude Include="example_2.h" />
     <ClInclude Include="example_3.h" />
@@ -164,6 +166,8 @@
     <ClInclude Include="test_shaders.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="scene_1.frag" />
+    <None Include="scene_1.vert" />
     <None Include="shader.frag" />
     <None Include="shader.vert" />
   </ItemGroup>
