@@ -23,11 +23,12 @@ float sensitivity_vert = 0.0015;
 Camera cam = Camera(0, 0, glm::vec3(), 0, 0);
 GLint mvpLoc;
 
+constexpr float MICROSEC = 1.0f / 1000000;
 constexpr int TIMES_COUNT = 10;
-std::vector<float> times(TIMES_COUNT);
+vector<float> times(TIMES_COUNT, 0.0f);
 int times_index = 0;
 chrono::steady_clock::time_point prevFrame;
-bool initFrame;
+bool initFrame = true;
 
 bool holdW = false, holdA = false, holdS = false, holdD = false;
 bool holdSpace = false, holdShift = false;
@@ -52,8 +53,8 @@ Vertex cube_vertices[] = {
 };
 
 GLuint cube_indices[] = {
-    0, 1, 2, 3,
-    4, 5, 6, 7,
+    3,2,1,0,
+    4,5,6,7,
     0, 1, 5, 4,
     1, 2, 6, 5,
     2, 3, 7, 6,
@@ -76,10 +77,9 @@ void keyState(unsigned char key, int x, int y, bool down)
         holdD = down;
     if (key == ' ')
         holdSpace = down;
-    if (key == 15)
-        holdShift = true;
-    if (key == 16)
-        holdShift = false;
+    if (key == 112)
+        holdShift = !holdShift;
+    //holdShift = glutGetModifiers() & GLUT_ACTIVE_SHIFT;
 }
 void setPaused(bool val)
 {
@@ -91,6 +91,12 @@ void setPaused(bool val)
     }
 }
 void keyDown(unsigned char key, int x, int y)
+{
+    if (key == 27)
+        setPaused(!paused);
+    keyState(key, x, y, true);
+}
+void keySpecial(int key, int x, int y)
 {
     if (key == 27)
         setPaused(!paused);
@@ -110,14 +116,24 @@ void mouseMove(int mx, int my) {
     }
 }
 
-void move(float time)
+void moveCamera(float time)
 {
     speed = glm::vec3();
     if (holdW)
+        speed.z += 1;
+    if (holdS)
+        speed.z -= 1;
+    if (holdA)
         speed.x += 1;
+    if (holdD)
+        speed.x -= 1;
+    if (holdSpace)
+        speed.y -= 1;
+    if (holdShift)
+        speed.y += 1;
 
     speed *= time;
-    cam.moveHor(speed.x, speed.y, speed.z);
+    cam.moveHor(speed.z, speed.x, speed.y);
 }
 
 void idle()
@@ -127,12 +143,15 @@ void idle()
         initFrame = false;
     } else {
         double delta = double(chrono::duration_cast<chrono::microseconds>(curFrame - prevFrame).count());
-        times[times_index] = delta;
+        if (times.size() >= TIMES_COUNT)
+            times[times_index] = delta;
+        else
+            times.push_back(delta);
         if (++times_index >= TIMES_COUNT)
             times_index = 0;
 
         double avg = std::accumulate(times.begin(), times.end(), 0.0) / times.size();
-        move(avg);
+        moveCamera(avg * MICROSEC);
         // animations
     }
     prevFrame = curFrame;
@@ -168,21 +187,12 @@ void initCamera()
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, &cam.mvp[0][0]);
 }
 
-int start_scene_1(int argc, char** argv)
+void initGL()
 {
-    glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-    glutInitWindowSize(win_width, win_height);
-    glutCreateWindow("OpenGL");
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glFrontFace(GL_CW);
 
-    GLint GlewInitResult = glewInit();
-    if (GLEW_OK != GlewInitResult)
-    {
-        printf("ERROR: %s", glewGetErrorString(GlewInitResult));
-        exit(EXIT_FAILURE);
-    }
-
-    //
     std::ifstream vsh_file("scene_1.vert");
     std::ifstream fsh_file("scene_1.frag");
     string vsh_src = string(istreambuf_iterator<char>(vsh_file), istreambuf_iterator<char>());
@@ -208,7 +218,7 @@ int start_scene_1(int argc, char** argv)
     int log_len;
     glGetProgramInfoLog(program, sizeof(log) / sizeof(log[0]) - 1, &log_len, log);
     log[log_len] = 0;
-    printf("LOG: %s", log);
+    printf("LOG: %s\n", log);
 
     mvpLoc = glGetUniformLocation(program, "mvp");
     glUseProgramObjectARB(program);
@@ -224,14 +234,30 @@ int start_scene_1(int argc, char** argv)
 
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    //
+}
 
+int start_scene_1(int argc, char** argv)
+{
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+    glutInitWindowSize(win_width, win_height);
+    glutCreateWindow("OpenGL");
+
+    GLint GlewInitResult = glewInit();
+    if (GLEW_OK != GlewInitResult)
+    {
+        printf("ERROR: %s", glewGetErrorString(GlewInitResult));
+        exit(EXIT_FAILURE);
+    }
+
+    initGL();
     initCamera();
     setPaused(false);
     glutReshapeFunc(reshape);
     glutDisplayFunc(display);
     glutIdleFunc(idle);
 
+    glutSpecialFunc(keySpecial);
     glutKeyboardFunc(keyDown);
     glutKeyboardUpFunc(keyUp);
     glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);

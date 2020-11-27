@@ -40,7 +40,7 @@ public:
 
 	void moveHor(float forward, float right, float up)
 	{
-		teleport(pos + glm::vec3(hor_cos * forward, - hor_sin * right, up));
+		teleport(pos + glm::vec3(hor_cos * right - hor_sin * forward, up, hor_cos * forward + hor_sin * right));
 	}
 
 	void setAngle(float yaw, float pitch)
@@ -58,13 +58,10 @@ public:
 		hor_cos = cos(yaw);
 		//printf("pos %f, %f, %f\n", pos.x, pos.y, pos.z);
 		//printf("angles %f, %f\n", yaw, pitch);
-		rot = glm::rotate(yaw, glm::vec3(0, 1, 0));
-		/*std::cout << rot[0][0] << rot[0][1] << rot[0][2] << rot[0][3] << std::endl;
-		std::cout << rot[1][0] << rot[1][1] << rot[1][2] << rot[1][3] << std::endl;
-		std::cout << rot[2][0] << rot[2][1] << rot[2][2] << rot[2][3] << std::endl;
-		std::cout << rot[3][0] << rot[3][1] << rot[3][2] << rot[3][3] << std::endl;*/
-		rot = glm::rotate(pitch, glm::vec3(rot * glm::vec4(1, 0, 0, 1))) *
-			rot;
+		rot = glm::rotate(pitch, glm::vec3(1, 0, 0));
+		rot = rot * glm::rotate(yaw, glm::vec3(0, 1, 0));
+		//rot = glm::rotate(yaw, glm::vec3(0, 1, 0));
+		//rot = glm::rotate(pitch, glm::vec3(rot * glm::vec4(1, 0, 0, 1))) * rot;
 	}
 
 	void addAngle(float dYaw, float dPitch)
