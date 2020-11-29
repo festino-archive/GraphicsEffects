@@ -17,6 +17,13 @@ private:
 	glm::mat4x4 rot;
 	float hor_sin;
 	float hor_cos;
+	float win_width, win_height;
+	float fov = 45.0f, near_dist = 0.1f, far_dist = 50.0f;
+
+	void updateProj()
+	{
+		proj = glm::perspectiveRH(fov, win_width / win_height, near_dist, far_dist);
+	}
 public:
 	glm::mat4x4 mvp;
 
@@ -69,16 +76,25 @@ public:
 		setAngle(yaw + dYaw, pitch + dPitch);
 	}
 
-	void updateProj(float win_width, float win_heignt)
+	void updateProjSize(float win_width, float win_height)
 	{
-		proj = glm::perspectiveRH(45.0f, win_width / win_heignt, 1.0f, 20.0f);
+		this->win_width = win_width;
+		this->win_height = win_height;
+		updateProj();
 	}
 
-	Camera(float yaw, float pitch, glm::vec3 pos, float win_width, float win_heignt)
+	void setProjParams(float fov, float near_dist, float far_dist) {
+		this->fov = fov;
+		this->near_dist = near_dist;
+		this->far_dist = far_dist;
+		updateProj();
+	}
+
+	Camera(float yaw, float pitch, glm::vec3 pos, float win_width, float win_height)
 	{
 		setAngle(yaw, pitch);
 		teleport(pos);
-		updateProj(win_width, win_heignt);
+		updateProjSize(win_width, win_height);
 		updateMvp();
 	}
 };

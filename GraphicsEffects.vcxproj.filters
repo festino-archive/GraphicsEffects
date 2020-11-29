@@ -14,54 +14,54 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="Examples">
-      <UniqueIdentifier>{f22ecbf1-91fb-4afe-a4fb-6b3134724e7f}</UniqueIdentifier>
+      <UniqueIdentifier>{fb548cb4-87ea-4c42-914f-3bd5953d1d10}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="example_1.cpp">
+    <ClCompile Include="Examples\example_1.cpp">
       <Filter>Examples</Filter>
     </ClCompile>
-    <ClCompile Include="scene_1.h">
+    <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="scene_1.cpp">
+    <ClCompile Include="src\scene_1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="example_1.h">
+    <ClInclude Include="Examples\example_1.h">
       <Filter>Examples</Filter>
     </ClInclude>
-    <ClInclude Include="example_2.h">
+    <ClInclude Include="Examples\example_2.h">
       <Filter>Examples</Filter>
     </ClInclude>
-    <ClInclude Include="example_3.h">
+    <ClInclude Include="Examples\example_3.h">
       <Filter>Examples</Filter>
     </ClInclude>
-    <ClInclude Include="example_4.h">
+    <ClInclude Include="Examples\example_4.h">
       <Filter>Examples</Filter>
     </ClInclude>
-    <ClInclude Include="test_shaders.h">
+    <ClInclude Include="Examples\test_shaders.h">
       <Filter>Examples</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h">
+    <ClInclude Include="src\Camera.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene_1.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shader.vert">
+    <None Include="Examples\shader.frag">
       <Filter>Examples</Filter>
     </None>
-    <None Include="shader.frag">
+    <None Include="Examples\shader.vert">
       <Filter>Examples</Filter>
     </None>
-    <None Include="scene_1.vert">
+    <None Include="src\scene_1.frag">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="scene_1.frag">
+    <None Include="src\scene_1.vert">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

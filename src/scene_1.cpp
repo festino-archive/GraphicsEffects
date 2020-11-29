@@ -13,8 +13,8 @@
 
 using namespace std;
 
-int win_width = 800;
-int win_height = 600;
+int win_width = 1280;
+int win_height = 720;
 GLuint program;
 
 bool paused = false;
@@ -160,11 +160,12 @@ void idle()
 
 void display()
 {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     cam.updateMvp();
     glUseProgramObjectARB(program);
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, &cam.mvp[0][0]);
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDrawElements(GL_QUADS, sizeof(cube_indices) / sizeof(cube_indices[0]), GL_UNSIGNED_INT, cube_indices);
     glFlush();
     glutSwapBuffers();
@@ -173,7 +174,7 @@ void reshape(int width, int height)
 {
     win_width = width;
     win_height = height;
-    cam.updateProj(win_width, win_height);
+    cam.updateProjSize(win_width, win_height);
     glViewport(0, 0, win_width, win_height);
     times.clear();
     times_index = 0;
@@ -190,14 +191,11 @@ void initCamera()
 void initGL()
 {
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glFrontFace(GL_CW);
 
     std::ifstream vsh_file("scene_1.vert");
     std::ifstream fsh_file("scene_1.frag");
     string vsh_src = string(istreambuf_iterator<char>(vsh_file), istreambuf_iterator<char>());
     string fsh_src = string(istreambuf_iterator<char>(fsh_file), istreambuf_iterator<char>());
-
     program = glCreateProgram();
     GLenum vertex_shader = glCreateShader(GL_VERTEX_SHADER_ARB);
     GLenum fragment_shader = glCreateShader(GL_FRAGMENT_SHADER_ARB);
@@ -233,13 +231,13 @@ void initGL()
     glEnableVertexAttribArray(0);
 
     glClearColor(0.0, 0.0, 0.0, 0.0);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // GL_LINE
 }
 
 int start_scene_1(int argc, char** argv)
 {
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+    glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
     glutInitWindowSize(win_width, win_height);
     glutCreateWindow("OpenGL");
 

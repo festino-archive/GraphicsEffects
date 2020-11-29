@@ -152,24 +152,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="example_1.cpp" />
-    <ClCompile Include="scene_1.cpp" />
-    <ClCompile Include="scene_1.h" />
+    <ClCompile Include="Examples\example_1.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\scene_1.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Camera.h" />
-    <ClInclude Include="example_1.h" />
-    <ClInclude Include="example_2.h" />
-    <ClInclude Include="example_3.h" />
-    <ClInclude Include="example_4.h" />
-    <ClInclude Include="test_shaders.h" />
+    <ClInclude Include="Examples\example_1.h" />
+    <ClInclude Include="Examples\example_2.h" />
+    <ClInclude Include="Examples\example_3.h" />
+    <ClInclude Include="Examples\example_4.h" />
+    <ClInclude Include="Examples\test_shaders.h" />
+    <ClInclude Include="src\Camera.h" />
+    <ClInclude Include="src\scene_1.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="scene_1.frag" />
-    <None Include="scene_1.vert" />
-    <None Include="shader.frag" />
-    <None Include="shader.vert" />
+    <None Include="Examples\shader.frag" />
+    <None Include="Examples\shader.vert" />
+    <None Include="src\scene_1.frag" />
+    <None Include="src\scene_1.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
