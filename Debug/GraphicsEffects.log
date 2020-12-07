@@ -1,8 +1,0 @@
-﻿  main.cpp
-C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\example_3.h(84,21): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\example_3.h(85,21): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\example_3.h(86,34): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\example_3.h(86,26): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\example_3.h(74,19): warning C4101: 'y': unreferenced local variable
-C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\example_3.h(74,16): warning C4101: 'x': unreferenced local variable
-  GraphicsEffects.vcxproj -> C:\Users\angry\source\repos\GraphicsEffects\Debug\GraphicsEffects.exe
