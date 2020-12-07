@@ -12,9 +12,10 @@ class Camera
 private:
 	float yaw;
 	float pitch;
-	glm::vec3 pos;
 	glm::mat4x4 proj;
 	glm::mat4x4 rot;
+	glm::vec3 pos;
+	glm::mat4x4 mvp;
 	float hor_sin;
 	float hor_cos;
 	float win_width, win_height;
@@ -25,11 +26,18 @@ private:
 		proj = glm::perspectiveRH(fov, win_width / win_height, near_dist, far_dist);
 	}
 public:
-	glm::mat4x4 mvp;
+	float* getMvpLoc()
+	{
+		return &mvp[0][0];
+	}
+	glm::vec3 getPosition()
+	{
+		return pos;
+	}
 
 	void updateMvp()
 	{
-		mvp = proj * rot * glm::translate(pos);
+		mvp = proj * rot * glm::translate(-pos);
 	}
 
 	void teleport(glm::vec3 to)

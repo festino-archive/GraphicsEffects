@@ -87,9 +87,9 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);NDEBUG</PreprocessorDefinitions>
+      <PreprocessorDefinitions>FREEIMAGE_LIB;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);NDEBUG</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\src;C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -104,9 +104,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);NDEBUG</PreprocessorDefinitions>
+      <PreprocessorDefinitions>FREEIMAGE_LIB;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);NDEBUG</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\src;C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -114,16 +114,17 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>freeglut.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>FreeImage.lib;freeglut.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>LIBCMT </IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);NDEBUG</PreprocessorDefinitions>
+      <PreprocessorDefinitions>FREEIMAGE_LIB;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);NDEBUG</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\src;C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -138,9 +139,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);NDEBUG</PreprocessorDefinitions>
+      <PreprocessorDefinitions>FREEIMAGE_LIB;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);NDEBUG</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\src;C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -148,28 +149,35 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Users\angry\source\repos\GraphicsEffects\GraphicsEffects\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>freeglut.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>FreeImage.lib;freeglut.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>LIBCMT </IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Examples\example_1.cpp" />
+    <ClCompile Include="src\Examples\example_1.cpp" />
+    <ClCompile Include="src\Examples\NormalMapping.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\scene_1.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Examples\example_1.h" />
-    <ClInclude Include="Examples\example_2.h" />
-    <ClInclude Include="Examples\example_3.h" />
-    <ClInclude Include="Examples\example_4.h" />
-    <ClInclude Include="Examples\test_shaders.h" />
     <ClInclude Include="src\Camera.h" />
+    <ClInclude Include="src\Examples\example_1.h" />
+    <ClInclude Include="src\Examples\example_2.h" />
+    <ClInclude Include="src\Examples\example_3.h" />
+    <ClInclude Include="src\Examples\example_4.h" />
+    <ClInclude Include="src\Examples\freeimage\include\FreeImage.h" />
+    <ClInclude Include="src\Examples\NormalMapping.h" />
+    <ClInclude Include="src\Examples\test_shaders.h" />
+    <ClInclude Include="src\Model.h" />
     <ClInclude Include="src\scene_1.h" />
+    <ClInclude Include="src\Vertex.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Examples\shader.frag" />
-    <None Include="Examples\shader.vert" />
-    <None Include="src\scene_1.frag" />
-    <None Include="src\scene_1.vert" />
+    <None Include="NBlinnFragment.glsl" />
+    <None Include="NBlinnVertex.glsl" />
+    <None Include="raymarcher.frag" />
+    <None Include="scene_1.frag" />
+    <None Include="scene_1.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

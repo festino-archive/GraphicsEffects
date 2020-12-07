@@ -14,55 +14,73 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="Examples">
-      <UniqueIdentifier>{fb548cb4-87ea-4c42-914f-3bd5953d1d10}</UniqueIdentifier>
+      <UniqueIdentifier>{e0c1eb13-c061-426a-b078-f5fdaf5598f0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Examples\example_1.cpp">
-      <Filter>Examples</Filter>
-    </ClCompile>
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\scene_1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Examples\example_1.cpp">
+      <Filter>Examples</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Examples\NormalMapping.cpp">
+      <Filter>Examples</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Examples\example_1.h">
-      <Filter>Examples</Filter>
-    </ClInclude>
-    <ClInclude Include="Examples\example_2.h">
-      <Filter>Examples</Filter>
-    </ClInclude>
-    <ClInclude Include="Examples\example_3.h">
-      <Filter>Examples</Filter>
-    </ClInclude>
-    <ClInclude Include="Examples\example_4.h">
-      <Filter>Examples</Filter>
-    </ClInclude>
-    <ClInclude Include="Examples\test_shaders.h">
-      <Filter>Examples</Filter>
-    </ClInclude>
     <ClInclude Include="src\Camera.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\scene_1.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Model.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Vertex.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Examples\freeimage\include\FreeImage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Examples\example_1.h">
+      <Filter>Examples</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Examples\example_2.h">
+      <Filter>Examples</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Examples\example_3.h">
+      <Filter>Examples</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Examples\example_4.h">
+      <Filter>Examples</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Examples\NormalMapping.h">
+      <Filter>Examples</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Examples\test_shaders.h">
+      <Filter>Examples</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Examples\shader.frag">
-      <Filter>Examples</Filter>
-    </None>
-    <None Include="Examples\shader.vert">
-      <Filter>Examples</Filter>
-    </None>
-    <None Include="src\scene_1.frag">
+    <None Include="raymarcher.frag">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="src\scene_1.vert">
+    <None Include="scene_1.frag">
       <Filter>Source Files</Filter>
+    </None>
+    <None Include="scene_1.vert">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="NBlinnVertex.glsl">
+      <Filter>Examples</Filter>
+    </None>
+    <None Include="NBlinnFragment.glsl">
+      <Filter>Examples</Filter>
     </None>
   </ItemGroup>
 </Project>

@@ -10,6 +10,7 @@
 #include <numeric>
 #include <vector>
 #include "Camera.h"
+#include "Model.h"
 
 using namespace std;
 
@@ -21,7 +22,7 @@ bool paused = false;
 float sensitivity_hor = 0.0012; // TODO: make pixel independent
 float sensitivity_vert = 0.0015;
 Camera cam = Camera(0, 0, glm::vec3(), 0, 0);
-GLint mvpLoc;
+GLint mvpLoc, cameraLoc;
 
 constexpr float MICROSEC = 1.0f / 1000000;
 constexpr int TIMES_COUNT = 10;
@@ -34,35 +35,14 @@ bool holdW = false, holdA = false, holdS = false, holdD = false;
 bool holdSpace = false, holdShift = false;
 glm::vec3 speed;
 
-#pragma pack(1)
-struct Vertex
+vector<Model*> models = vector<Model*>();;
+
+void makeCube(float size = 1.0f)
 {
-    float x, y, z;
-};
-#pragma pack()
-
-Vertex cube_vertices[] = {
-    { -0.5f, -0.5f, -0.5f },
-    { -0.5f, 0.5f, -0.5f },
-    { 0.5f, 0.5f, -0.5f },
-    { 0.5f, -0.5f, -0.5f },
-    { -0.5f, -0.5f, 0.5f },
-    { -0.5f, 0.5f, 0.5f },
-    { 0.5f, 0.5f, 0.5f },
-    { 0.5f, -0.5f, 0.5f }
-};
-
-GLuint cube_indices[] = {
-    3,2,1,0,
-    4,5,6,7,
-    0, 1, 5, 4,
-    1, 2, 6, 5,
-    2, 3, 7, 6,
-    3, 0, 4, 7
-};
-
-GLuint vertexBuffer;
-GLuint vertexArray;
+    Model* model = new Model();
+    model->draw();
+    models.push_back(model);
+}
 
 void keyState(unsigned char key, int x, int y, bool down)
 {
@@ -120,17 +100,17 @@ void moveCamera(float time)
 {
     speed = glm::vec3();
     if (holdW)
-        speed.z += 1;
-    if (holdS)
         speed.z -= 1;
+    if (holdS)
+        speed.z += 1;
     if (holdA)
-        speed.x += 1;
-    if (holdD)
         speed.x -= 1;
+    if (holdD)
+        speed.x += 1;
     if (holdSpace)
-        speed.y -= 1;
-    if (holdShift)
         speed.y += 1;
+    if (holdShift)
+        speed.y -= 1;
 
     speed *= time;
     cam.moveHor(speed.z, speed.x, speed.y);
@@ -164,9 +144,15 @@ void display()
 
     cam.updateMvp();
     glUseProgramObjectARB(program);
-    glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, &cam.mvp[0][0]);
+    glm::vec3 pos = cam.getPosition();
+    glUniform3f(cameraLoc, pos.x, pos.y, pos.z);
+    glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, cam.getMvpLoc());
 
-    glDrawElements(GL_QUADS, sizeof(cube_indices) / sizeof(cube_indices[0]), GL_UNSIGNED_INT, cube_indices);
+    for (Model *model : models)
+    {
+        model->draw();
+    }
+
     glFlush();
     glutSwapBuffers();
 }
@@ -183,15 +169,15 @@ void reshape(int width, int height)
 
 void initCamera()
 {
-    cam = Camera(0, 0, glm::vec3(0, 0, -2), win_width, win_height);
-
-    glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, &cam.mvp[0][0]);
+    cam = Camera(0, 0, glm::vec3(0, 0, 2), win_width, win_height);
 }
 
 void initGL()
 {
     glEnable(GL_DEPTH_TEST);
 
+    //std::ifstream vsh_file("NBlinnVertex.glsl");
+    //std::ifstream fsh_file("NBlinnFragment.glsl");
     std::ifstream vsh_file("scene_1.vert");
     std::ifstream fsh_file("scene_1.frag");
     string vsh_src = string(istreambuf_iterator<char>(vsh_file), istreambuf_iterator<char>());
@@ -218,17 +204,11 @@ void initGL()
     log[log_len] = 0;
     printf("LOG: %s\n", log);
 
-    mvpLoc = glGetUniformLocation(program, "mvp");
     glUseProgramObjectARB(program);
+    mvpLoc = glGetUniformLocation(program, "mvp");
+    cameraLoc = glGetUniformLocation(program, "camera");
 
-    glGenBuffers(1, &vertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices, GL_STATIC_DRAW);
-
-    glGenVertexArrays(1, &vertexArray);
-    glBindVertexArray(vertexArray);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(0);
+    makeCube();
 
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // GL_LINE
