@@ -1,4 +1,4 @@
-
+﻿
 #include <stdlib.h>
 #include <GL/glew.h>
 #include <GL/glut.h>
@@ -33,8 +33,9 @@ chrono::steady_clock::time_point prevFrame;
 bool initFrame = true;
 
 GLint mvpLoc, cameraLoc;
-GLint lightsCountLoc, lightsLoc;
-vector<Omnilight> lights = vector<Omnilight>();
+GLuint lightsLoc;
+//vector<Omnilight> lights = vector<Omnilight>();
+Omnilight lights[1];
 vector<Model*> models = vector<Model*>();
 
 bool holdW = false, holdA = false, holdS = false, holdD = false;
@@ -140,7 +141,8 @@ void idle()
         double avg = std::accumulate(times.begin(), times.end(), 0.0) / times.size();
         moveCamera(avg);
         // animations
-        lights[0].light_pos = glm::vec3(2 * glm::sin(full_time), 1, 2 * glm::cos(full_time));
+        float angle = full_time / 30;
+        lights[0].light_pos = glm::vec4(2 * glm::sin(angle), 1, 2 * glm::cos(angle), 0);
     }
     prevFrame = curFrame;
     glutPostRedisplay();
@@ -155,8 +157,10 @@ void display()
     glm::vec3 pos = cam.getPosition();
     glUniform3fv(cameraLoc, 1, &pos[0]);
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, cam.getMvpLoc());
-    glUniform1ui(lightsCountLoc, lights.size());
-    glUniformBlockBinding(lightsLoc, 0, (GLuint)&lights[0]);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightsLoc);
+    glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(lights), &lights[0]);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+    //cout << lights[0].light_pos.z << endl;
 
     for (Model *model : models)
     {
@@ -217,16 +221,14 @@ void initGL()
     glUseProgramObjectARB(program);
     mvpLoc = glGetUniformLocation(program, "mvp");
     cameraLoc = glGetUniformLocation(program, "camera");
-    lightsCountLoc = glGetUniformLocation(program, "lightsCount");
-    lightsLoc = glGetUniformLocation(program, "lightsBlock");
-    /*lightsLoc[0] = glGetUniformLocation(program, "lights_pos");
-    lightsLoc[1] = glGetUniformLocation(program, "lights_impact");
-    lightsLoc[2] = glGetUniformLocation(program, "lights_color");
-    lightsLoc[3] = glGetUniformLocation(program, "lights_spec_impact");
-    lightsLoc[4] = glGetUniformLocation(program, "lights_spec_color");*/
+    glGenBuffers(1, &lightsLoc);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightsLoc);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(lights), &lights[0], GL_STATIC_READ);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, lightsLoc);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
     makeCube();
-    lights.push_back({ {0, 1, 2}, 0.7, {0.9, 1, 0.9}, 0.2, {0.9, 1, 0.9} });
+    lights[0] = { {0, 1, 2, 0}, {0.9, 0, 0, 0}, {0.9, 0, 0, 0}, 0.7, 0.2 };
 
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // GL_LINE

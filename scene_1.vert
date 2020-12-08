@@ -1,4 +1,4 @@
-#version 420 core
+#version 430 core
 
 uniform vec3 camera;
 uniform mat4 mvp;
