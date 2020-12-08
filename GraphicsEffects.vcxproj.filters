@@ -65,6 +65,9 @@
     <ClInclude Include="src\Examples\test_shaders.h">
       <Filter>Examples</Filter>
     </ClInclude>
+    <ClInclude Include="src\Omnilight.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="raymarcher.frag">

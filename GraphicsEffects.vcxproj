@@ -169,6 +169,7 @@
     <ClInclude Include="src\Examples\NormalMapping.h" />
     <ClInclude Include="src\Examples\test_shaders.h" />
     <ClInclude Include="src\Model.h" />
+    <ClInclude Include="src\Omnilight.h" />
     <ClInclude Include="src\scene_1.h" />
     <ClInclude Include="src\Vertex.h" />
   </ItemGroup>

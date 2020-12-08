@@ -11,6 +11,7 @@
 #include <vector>
 #include "Camera.h"
 #include "Model.h"
+#include "Omnilight.h"
 
 using namespace std;
 
@@ -22,20 +23,24 @@ bool paused = false;
 float sensitivity_hor = 0.0012; // TODO: make pixel independent
 float sensitivity_vert = 0.0015;
 Camera cam = Camera(0, 0, glm::vec3(), 0, 0);
-GLint mvpLoc, cameraLoc;
 
 constexpr float MICROSEC = 1.0f / 1000000;
 constexpr int TIMES_COUNT = 10;
+float full_time = 0;
 vector<float> times(TIMES_COUNT, 0.0f);
 int times_index = 0;
 chrono::steady_clock::time_point prevFrame;
 bool initFrame = true;
 
+GLint mvpLoc, cameraLoc;
+GLint lightsCountLoc, lightsLoc;
+vector<Omnilight> lights = vector<Omnilight>();
+vector<Model*> models = vector<Model*>();
+
 bool holdW = false, holdA = false, holdS = false, holdD = false;
 bool holdSpace = false, holdShift = false;
 glm::vec3 speed;
 
-vector<Model*> models = vector<Model*>();;
 
 void makeCube(float size = 1.0f)
 {
@@ -123,6 +128,8 @@ void idle()
         initFrame = false;
     } else {
         double delta = double(chrono::duration_cast<chrono::microseconds>(curFrame - prevFrame).count());
+        delta *= MICROSEC;
+        full_time += delta;
         if (times.size() >= TIMES_COUNT)
             times[times_index] = delta;
         else
@@ -131,8 +138,9 @@ void idle()
             times_index = 0;
 
         double avg = std::accumulate(times.begin(), times.end(), 0.0) / times.size();
-        moveCamera(avg * MICROSEC);
+        moveCamera(avg);
         // animations
+        lights[0].light_pos = glm::vec3(2 * glm::sin(full_time), 1, 2 * glm::cos(full_time));
     }
     prevFrame = curFrame;
     glutPostRedisplay();
@@ -145,8 +153,10 @@ void display()
     cam.updateMvp();
     glUseProgramObjectARB(program);
     glm::vec3 pos = cam.getPosition();
-    glUniform3f(cameraLoc, pos.x, pos.y, pos.z);
+    glUniform3fv(cameraLoc, 1, &pos[0]);
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, cam.getMvpLoc());
+    glUniform1ui(lightsCountLoc, lights.size());
+    glUniformBlockBinding(lightsLoc, 0, (GLuint)&lights[0]);
 
     for (Model *model : models)
     {
@@ -207,8 +217,16 @@ void initGL()
     glUseProgramObjectARB(program);
     mvpLoc = glGetUniformLocation(program, "mvp");
     cameraLoc = glGetUniformLocation(program, "camera");
+    lightsCountLoc = glGetUniformLocation(program, "lightsCount");
+    lightsLoc = glGetUniformLocation(program, "lightsBlock");
+    /*lightsLoc[0] = glGetUniformLocation(program, "lights_pos");
+    lightsLoc[1] = glGetUniformLocation(program, "lights_impact");
+    lightsLoc[2] = glGetUniformLocation(program, "lights_color");
+    lightsLoc[3] = glGetUniformLocation(program, "lights_spec_impact");
+    lightsLoc[4] = glGetUniformLocation(program, "lights_spec_color");*/
 
     makeCube();
+    lights.push_back({ {0, 1, 2}, 0.7, {0.9, 1, 0.9}, 0.2, {0.9, 1, 0.9} });
 
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // GL_LINE

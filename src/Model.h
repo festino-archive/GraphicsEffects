@@ -8,9 +8,9 @@ class Model
 {
 public:
     int vertices_count;
-    Vertex *vertices;
+    Vertex* vertices;
     int indices_count;
-    GLuint *indices;
+    GLuint* indices;
 
     GLuint vertexBuffer;
     GLuint vertexArray;
@@ -19,7 +19,7 @@ public:
     {
         vertices_count = 8;
         vertices = new Vertex[vertices_count];
-        Vertex t1[] = {
+        glm::vec3 poses[] = {
             { -0.5f, -0.5f, -0.5f },
             { -0.5f, 0.5f, -0.5f },
             { 0.5f, 0.5f, -0.5f },
@@ -30,7 +30,7 @@ public:
             { 0.5f, -0.5f, 0.5f }
         };
         for (int i = 0; i < vertices_count; i++)
-            vertices[i] = t1[i];
+            vertices[i] = { poses[i], poses[i] };
 
         indices_count = 6 * 4;
         indices = new GLuint[indices_count];
@@ -49,8 +49,10 @@ public:
 
         glGenVertexArrays(1, &vertexArray);
         glBindVertexArray(vertexArray);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
         glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(1);
     }
 
     void draw()
