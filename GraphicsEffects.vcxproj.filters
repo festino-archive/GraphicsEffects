@@ -68,6 +68,12 @@
     <ClInclude Include="src\Omnilight.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\FileUtils.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Skybox.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="raymarcher.frag">
@@ -84,6 +90,12 @@
     </None>
     <None Include="NBlinnFragment.glsl">
       <Filter>Examples</Filter>
+    </None>
+    <None Include="skybox.frag">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="skybox.vert">
+      <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
 </Project>

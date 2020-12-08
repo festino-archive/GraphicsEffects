@@ -16,22 +16,23 @@ layout (std140, binding = 0) buffer lightsBlock {
 	Omnilight lights[];
 };
 
-uniform vec4 LightPosition = vec4(1,0.5,1,0);
-uniform float LightImpact = 0.7;
-uniform vec4 LightColor = vec4(0.9,1,0.9,0);
-uniform float SpecularImpact = 0.2;
-uniform vec4 SpecularColor = vec4(0.9,1,0.9,0);
+uniform sampler2D skyboxMap;
 
 uniform float shininess = 10;
-uniform vec4 objectColor = vec4(1,1,1,0);
+uniform sampler2D colorMap;
+uniform sampler2D normalMap;
+
 in vec3 vertex;
-in vec3 normal_unnorm;
 in vec3 toCamera_unnorm;
+in vec2 texCoords;
 out vec4 color;
 
+
 void main() {
-	//vec3 normal = from_map;
-	vec4 normal = vec4(normalize(normal_unnorm), 0);
+	vec4 normal_unnorm = texture2D(normalMap, texCoords);
+	normal_unnorm = (normal_unnorm - vec4(0.5, 0.5, 0.5, 0)) * 2.0;
+	//normal_unnorm = vec4(texCoords + vec2(0.5, 0.5), 0, 0);
+	vec4 normal = normalize(normal_unnorm);
 	vec4 toCamera = vec4(normalize(toCamera_unnorm), 0);
 
 	vec4 ambient = AmbientImpact * AmbientColor;
@@ -54,22 +55,8 @@ void main() {
 		rgb += diffuse + specular;
 	}
 
-	vec4 toLight = LightPosition - vec4(vertex, 0);
-	toLight = normalize(toLight);
-	vec4 reflected = 2 * dot(toLight, normal) * normal - toLight;
-	reflected = normalize(reflected);
-	
-	vec4 diffuse = dot(toLight, normal) * LightImpact * LightColor;
-	diffuse = clamp(diffuse, 0, 1);
-	vec4 specular = pow(clamp(dot(toCamera, reflected), 0, 1), shininess) * SpecularImpact * SpecularColor;
-
-	if (dot(toLight, normal) <= 0.0)
-	{
-		specular = vec4(0,0,0,0);
-	}
-	rgb += diffuse + specular;
-
+	vec4 objectColor = texture2D(colorMap, texCoords);
 	rgb *= objectColor;
+	//rgb = normal;
 	color = rgb;
-	//color = vec4(vertex + vec3(0.5,0.5,0.5), 0);
 }

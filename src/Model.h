@@ -30,7 +30,7 @@ public:
             { 0.5f, -0.5f, 0.5f }
         };
         for (int i = 0; i < vertices_count; i++)
-            vertices[i] = { poses[i], poses[i] };
+            vertices[i] = { poses[i], {poses[i].x + 0.5f, poses[i].y + 0.5f} };
 
         indices_count = 6 * 4;
         indices = new GLuint[indices_count];
@@ -50,7 +50,7 @@ public:
         glGenVertexArrays(1, &vertexArray);
         glBindVertexArray(vertexArray);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, texcoords)));
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
     }

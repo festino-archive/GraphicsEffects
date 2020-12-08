@@ -4,14 +4,13 @@
 #include <GL/glut.h>
 #include <cmath>
 #include <chrono>
-#include <fstream>
-#include <iostream>
-#include <iterator>
 #include <numeric>
 #include <vector>
 #include "Camera.h"
+#include "FileUtils.h"
 #include "Model.h"
 #include "Omnilight.h"
+#include "Skybox.h"
 
 using namespace std;
 
@@ -32,10 +31,16 @@ int times_index = 0;
 chrono::steady_clock::time_point prevFrame;
 bool initFrame = true;
 
-GLint mvpLoc, cameraLoc;
+GLuint mvpLoc, cameraLoc;
+
 GLuint lightsLoc;
 //vector<Omnilight> lights = vector<Omnilight>();
-Omnilight lights[1];
+Omnilight lights[2];
+
+Skybox skybox;
+GLuint linearFiltering;
+GLuint colorMapLoc, colorMapID;
+GLuint normalMapLoc, normalMapID;
 vector<Model*> models = vector<Model*>();
 
 bool holdW = false, holdA = false, holdS = false, holdD = false;
@@ -141,8 +146,8 @@ void idle()
         double avg = std::accumulate(times.begin(), times.end(), 0.0) / times.size();
         moveCamera(avg);
         // animations
-        float angle = full_time / 30;
-        lights[0].light_pos = glm::vec4(2 * glm::sin(angle), 1, 2 * glm::cos(angle), 0);
+        float angle = full_time / 20;
+        lights[1].light_pos = glm::vec4(2 * glm::sin(angle), 1, 2 * glm::cos(angle), 0);
     }
     prevFrame = curFrame;
     glutPostRedisplay();
@@ -153,7 +158,7 @@ void display()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     cam.updateMvp();
-    glUseProgramObjectARB(program);
+    glUseProgram(program);
     glm::vec3 pos = cam.getPosition();
     glUniform3fv(cameraLoc, 1, &pos[0]);
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, cam.getMvpLoc());
@@ -162,10 +167,19 @@ void display()
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
     //cout << lights[0].light_pos.z << endl;
 
+    glActiveTexture(GL_TEXTURE0 + colorMapID);
+    glBindTexture(GL_TEXTURE_2D, colorMapID);
+    glBindSampler(0, linearFiltering);
+    glActiveTexture(GL_TEXTURE0 + normalMapID);
+    glBindTexture(GL_TEXTURE_2D, normalMapID);
+    glBindSampler(2, linearFiltering);
+
     for (Model *model : models)
     {
         model->draw();
     }
+
+    skybox.draw(program);
 
     glFlush();
     glutSwapBuffers();
@@ -190,45 +204,35 @@ void initGL()
 {
     glEnable(GL_DEPTH_TEST);
 
-    //std::ifstream vsh_file("NBlinnVertex.glsl");
-    //std::ifstream fsh_file("NBlinnFragment.glsl");
-    std::ifstream vsh_file("scene_1.vert");
-    std::ifstream fsh_file("scene_1.frag");
-    string vsh_src = string(istreambuf_iterator<char>(vsh_file), istreambuf_iterator<char>());
-    string fsh_src = string(istreambuf_iterator<char>(fsh_file), istreambuf_iterator<char>());
-    program = glCreateProgram();
-    GLenum vertex_shader = glCreateShader(GL_VERTEX_SHADER_ARB);
-    GLenum fragment_shader = glCreateShader(GL_FRAGMENT_SHADER_ARB);
+    skybox = Skybox();
+    skybox.init();
 
-    const char *src = vsh_src.c_str();
-    glShaderSource(vertex_shader, 1, &src, NULL);
-    src = fsh_src.c_str();
-    glShaderSource(fragment_shader, 1, &src, NULL);
+    FileUtils::loadShaders(program, "scene_1.vert", "scene_1.frag");
 
-    glCompileShader(vertex_shader);
-    glCompileShader(fragment_shader);
-
-    glAttachShader(program, vertex_shader);
-    glAttachShader(program, fragment_shader);
-
-    glLinkProgram(program);
-    char log[10000];
-    int log_len;
-    glGetProgramInfoLog(program, sizeof(log) / sizeof(log[0]) - 1, &log_len, log);
-    log[log_len] = 0;
-    printf("LOG: %s\n", log);
-
-    glUseProgramObjectARB(program);
+    glUseProgram(program);
     mvpLoc = glGetUniformLocation(program, "mvp");
     cameraLoc = glGetUniformLocation(program, "camera");
+
+    // https://www.khronos.org/opengl/wiki/Sampler_Object
+    glGenSamplers(1, &linearFiltering);
+    glSamplerParameteri(linearFiltering, GL_TEXTURE_MAG_FILTER, GL_LINEAR);//_MIPMAP_LINEAR);
+    glSamplerParameteri(linearFiltering, GL_TEXTURE_MIN_FILTER, GL_LINEAR);//_MIPMAP_LINEAR);
+
+    colorMapLoc = glGetUniformLocation(program, "colorMap");
+    normalMapLoc = glGetUniformLocation(program, "normalMap");
+    FileUtils::loadTextures(colorMapID, "prev.png");
+    FileUtils::loadTextures(normalMapID, "normalmap.bmp");
+    glUniform1i(colorMapLoc, colorMapID);
+    glUniform1i(normalMapLoc, normalMapID);
+
+    makeCube();
     glGenBuffers(1, &lightsLoc);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightsLoc);
     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(lights), &lights[0], GL_STATIC_READ);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, lightsLoc);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
-    makeCube();
-    lights[0] = { {0, 1, 2, 0}, {0.9, 0, 0, 0}, {0.9, 0, 0, 0}, 0.7, 0.2 };
+    lights[0] = { {1, 0.5, 1, 0}, {0.9, 1, 0.9, 0}, {0.9, 1, 0.9, 0}, 0.7, 0.2 };
+    lights[1] = { {0, 1, 2, 0}, {0.9, 0, 0, 0}, {0.9, 0, 0, 0}, 0.7, 0.2 };
 
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // GL_LINE
