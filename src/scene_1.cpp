@@ -54,7 +54,7 @@ glm::vec3 speed;
 void loadModels()
 {
     Texture* texture = new Texture(program, "prev.png", "smooth_normal.png");
-    Model* model = makeStaticCube(1, { 0, 0, 0 }, glm::identity<glm::mat4>(), texture);
+    Model* model = makeStaticCube(1, { 0, 0, -1.5 }, glm::identity<glm::mat4>(), texture);
     models.push_back(model);
     texture = new Texture(program, "brick.png", "brick_normal.png");
     model = makeStaticCube(2, { 3, 0.5, 0 }, glm::identity<glm::mat4>(), texture);
@@ -62,10 +62,16 @@ void loadModels()
 
     texture = new Texture(program, "prev.png", "smooth_normal.png");
     Vertex* vertices = new Vertex[3];
-    vertices[0] = { {-2, -0.5, -0.5}, {0, 0} };
-    vertices[1] = { {-3, -0.5, 0.5}, {0, 0} };
-    vertices[2] = { {-2, 0.5, -0.5}, {0, 0} };
+    vertices[0] = { {-0.5, -0.5, 0}, {0, 0} };
+    vertices[1] = { {0.5, -0.5, 0}, {0, 0} };
+    vertices[2] = { {0.5, 0.5, 0}, {0, 0} };
     model = new Model(3, vertices, texture);
+    mirror_faces.push_back(model);
+    Vertex* vertices2 = new Vertex[3];
+    vertices2[0] = { {-0.5, -0.5, 0}, {0, 0} };
+    vertices2[1] = { {-0.5, 0.5, 0}, {0, 0} };
+    vertices2[2] = { {0.5, 0.5, 0}, {0, 0} };
+    model = new Model(3, vertices2, texture);
     mirror_faces.push_back(model);
 }
 
@@ -305,7 +311,7 @@ void display()
         glm::vec3 b = { mirror->vertices[2].position - mirror->vertices[0].position };
         glm::vec3 pos_flipped = flip(cam.getPosition(), a, b);
         glm::mat4x4 mvp_flipped_centered = cam.flippedMvp_centered(a, b);
-        glm::mat4x4 mvp_flipped = mvp_flipped_centered * glm::translate(pos_flipped);
+        glm::mat4x4 mvp_flipped = mvp_flipped_centered * glm::translate(-pos_flipped);
         //cout << pos_flipped.x << " " << pos_flipped.y << " " << pos_flipped.z << endl;
         //cout << pos.x << " " << pos.y << " " << pos.z << endl;
         glUniform3fv(cameraLoc, 1, &pos_flipped[0]);

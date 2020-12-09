@@ -46,15 +46,25 @@ glm::vec3 flip(glm::vec3 point, glm::vec3 plane1, glm::vec3 plane2)
 
 glm::mat4x4 flipRotation(glm::mat4x4 rot, glm::vec3 plane1, glm::vec3 plane2)
 {
+    rot = glm::inverse(rot);
     glm::vec4 forward = rot * glm::vec4(0, 0, -1, 1);
     glm::vec3 orig = glm::vec3(forward);
     glm::vec3 projected = project(orig, plane1, plane2);
-    float angle = glm::asin(glm::length(projected) / glm::length(orig));
     //if (glm::dot(orig, projected) < 0)
     //    angle = 2 * glm::pi<float>() - angle;
-    cout << angle << " <- " << glm::length(projected) << " / " << glm::length(orig)  << endl;
+    glm::vec4 right = rot * glm::vec4(1, 0, 0, 1);
+    glm::vec3 orig2 = glm::vec3(right);
+    glm::vec3 projected2 = project(orig2, plane1, plane2);
+    glm::vec4 up = rot * glm::vec4(0, 1, 0, 1);
+    glm::vec3 orig3 = glm::vec3(up);
+    glm::vec3 projected3 = project(orig3, plane1, plane2);
+    float angle_z = glm::acos(glm::length(projected));
+    float angle_y = glm::acos(glm::length(projected3));
+    if (glm::dot(projected, projected2) < 0)
+        angle_z = -angle_z;
+    //cout << angle_z << " <- " << glm::length(projected) << " / " << glm::length(orig) << endl;
     glm::mat4x4 res = glm::scale(rot, { -1, 1, 1 });
-    res = res * glm::rotate(2 * angle, glm::vec3(0, 1, 0));
+    res = res * glm::rotate(2 * angle_z, glm::vec3(0, cos(angle_y), -sin(angle_y)));
     return res;
 }
 
