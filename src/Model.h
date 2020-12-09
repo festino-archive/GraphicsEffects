@@ -58,6 +58,7 @@ public:
     void draw()
     {
         //std::cout << "draw" << std::endl;
+        glBindVertexArray(vertexArray);
         glDrawElements(GL_QUADS, indices_count, GL_UNSIGNED_INT, indices);
     }
 };

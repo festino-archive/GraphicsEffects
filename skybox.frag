@@ -1,10 +1,10 @@
 #version 430 core
 
-uniform sampler2D skyboxMap;
+uniform samplerCube skyboxMap;
 
-in vec3 toCamera_unnorm;
+in vec3 fromCamera;
 out vec4 color;
 
 void main() {
-	color = textureCube(skyboxMap, toCamera_unnorm);
+	color = texture(skyboxMap, -fromCamera);
 }

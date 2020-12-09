@@ -169,17 +169,17 @@ void display()
 
     glActiveTexture(GL_TEXTURE0 + colorMapID);
     glBindTexture(GL_TEXTURE_2D, colorMapID);
-    glBindSampler(0, linearFiltering);
+    glBindSampler(colorMapID, linearFiltering);
     glActiveTexture(GL_TEXTURE0 + normalMapID);
     glBindTexture(GL_TEXTURE_2D, normalMapID);
-    glBindSampler(2, linearFiltering);
+    glBindSampler(normalMapID, linearFiltering);
 
     for (Model *model : models)
     {
         model->draw();
     }
 
-    skybox.draw(program);
+    skybox.draw(&cam);
 
     glFlush();
     glutSwapBuffers();
@@ -203,6 +203,7 @@ void initCamera()
 void initGL()
 {
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
 
     skybox = Skybox();
     skybox.init();

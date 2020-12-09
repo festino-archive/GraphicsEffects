@@ -15,6 +15,7 @@ private:
 	glm::mat4x4 proj;
 	glm::mat4x4 rot;
 	glm::vec3 pos;
+	glm::mat4x4 mvp_centered;
 	glm::mat4x4 mvp;
 	float hor_sin;
 	float hor_cos;
@@ -26,6 +27,10 @@ private:
 		proj = glm::perspectiveRH(fov, win_width / win_height, near_dist, far_dist);
 	}
 public:
+	float* getMvp_CenteredLoc()
+	{
+		return &mvp_centered[0][0];
+	}
 	float* getMvpLoc()
 	{
 		return &mvp[0][0];
@@ -37,7 +42,8 @@ public:
 
 	void updateMvp()
 	{
-		mvp = proj * rot * glm::translate(-pos);
+		mvp_centered = proj * rot;
+		mvp = mvp_centered * glm::translate(-pos);
 	}
 
 	void teleport(glm::vec3 to)
