@@ -10,42 +10,17 @@ class Model
 public:
     int vertices_count;
     Vertex* vertices;
-    int indices_count;
-    GLuint* indices;
 
     GLuint vertexBuffer;
     GLuint vertexArray;
 
     Texture* texture;
 
-    Model(Texture* texture)
+    Model(int vertices_count, Vertex* vertices, Texture* texture)
     {
+        this->vertices_count = vertices_count;
+        this->vertices = vertices;
         this->texture = texture;
-        vertices_count = 8;
-        vertices = new Vertex[vertices_count];
-        glm::vec3 poses[] = {
-            { -0.5f, -0.5f, -0.5f },
-            { -0.5f, 0.5f, -0.5f },
-            { 0.5f, 0.5f, -0.5f },
-            { 0.5f, -0.5f, -0.5f },
-            { -0.5f, -0.5f, 0.5f },
-            { -0.5f, 0.5f, 0.5f },
-            { 0.5f, 0.5f, 0.5f },
-            { 0.5f, -0.5f, 0.5f }
-        };
-        for (int i = 0; i < vertices_count; i++)
-            vertices[i] = { poses[i], {poses[i].x + 0.5f, poses[i].y + 0.5f} };
-
-        indices_count = 6 * 4;
-        indices = new GLuint[indices_count];
-        GLuint t2[] = { 3, 2, 1, 0,
-            4, 5, 6, 7,
-            0, 1, 5, 4,
-            1, 2, 6, 5,
-            2, 3, 7, 6,
-            3, 0, 4, 7 };
-        for (int i = 0; i < indices_count; i++)
-            indices[i] = t2[i];
 
         glGenBuffers(1, &vertexBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -57,13 +32,12 @@ public:
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, texcoords)));
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
-
     }
 
     void draw()
     {
         texture->use();
         glBindVertexArray(vertexArray);
-        glDrawElements(GL_QUADS, indices_count, GL_UNSIGNED_INT, indices);
+        glDrawArrays(GL_TRIANGLES, 0, vertices_count);
     }
 };

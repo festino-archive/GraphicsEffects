@@ -7,8 +7,8 @@
 #include <numeric>
 #include <vector>
 #include "Camera.h"
-#include "FileUtils.h"
 #include "Model.h"
+#include "ModelCube.h"
 #include "Omnilight.h"
 #include "Skybox.h"
 
@@ -48,8 +48,7 @@ glm::vec3 speed;
 void makeCube(float size = 1.0f)
 {
     Texture* texture = new Texture(program, "prev.png", "normalmap.bmp");
-    Model* model = new Model(texture);
-    model->draw();
+    Model* model = makeStaticCube(1, {0,0,0}, glm::identity<glm::mat4>(), texture);
     models.push_back(model);
 }
 

@@ -74,10 +74,10 @@
     <ClInclude Include="src\Skybox.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="ModelCube.h">
+    <ClInclude Include="src\Texture.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Texture.h">
+    <ClInclude Include="src\ModelCube.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

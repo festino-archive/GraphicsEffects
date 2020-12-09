@@ -160,7 +160,6 @@
     <ClCompile Include="src\scene_1.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ModelCube.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\Examples\example_1.h" />
     <ClInclude Include="src\Examples\example_2.h" />
@@ -171,6 +170,7 @@
     <ClInclude Include="src\Examples\test_shaders.h" />
     <ClInclude Include="src\FileUtils.h" />
     <ClInclude Include="src\Model.h" />
+    <ClInclude Include="src\ModelCube.h" />
     <ClInclude Include="src\Omnilight.h" />
     <ClInclude Include="src\scene_1.h" />
     <ClInclude Include="src\Skybox.h" />
