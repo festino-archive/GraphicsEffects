@@ -77,7 +77,7 @@
     <ClInclude Include="src\Texture.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\ModelCube.h">
+    <ClInclude Include="src\Utils.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -101,6 +101,12 @@
       <Filter>Source Files</Filter>
     </None>
     <None Include="skybox.vert">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="2d.frag">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="2d.vert">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

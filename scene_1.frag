@@ -57,5 +57,6 @@ void main() {
 	vec4 objectColor = texture2D(colorMap, texCoords);
 	rgb *= objectColor;
 	//rgb = normal;
+	//rgb = vec4(gl_FragCoord.z, 0, 0, 0);
 	color = rgb;
 }

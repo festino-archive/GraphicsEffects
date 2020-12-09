@@ -6,6 +6,7 @@
 //#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 #include <iostream>
+#include "Utils.h"
 
 class Camera
 {
@@ -27,6 +28,10 @@ private:
 		proj = glm::perspectiveRH(fov, win_width / win_height, near_dist, far_dist);
 	}
 public:
+	glm::mat4x4 getMvp_Centered()
+	{
+		return mvp_centered;
+	}
 	float* getMvp_CenteredLoc()
 	{
 		return &mvp_centered[0][0];
@@ -46,17 +51,27 @@ public:
 		mvp = mvp_centered * glm::translate(-pos);
 	}
 
+	glm::mat4x4 flippedMvp_centered(glm::vec3 plane1, glm::vec3 plane2)
+	{
+		return proj * flipRotation(rot, plane1, plane2);
+	}
+
 	void teleport(glm::vec3 to)
 	{
 		pos = to;
 	}
 
-	void move(float cameraX, float cameraY, float cameraZ)
+	glm::vec3 getRelative(float cameraX, float cameraY, float cameraZ)
 	{
 		glm::vec3 forward = rot * glm::vec4(cameraX, 0, 0, 1); // check xyz, check if need inverted rot
 		glm::vec3 right = rot * glm::vec4(0, cameraY, 0, 1);
 		glm::vec3 up = rot * glm::vec4(0, 0, cameraZ, 1);
-		teleport(pos + forward + right + up);
+		return pos + forward + right + up;
+	}
+
+	void move(float cameraX, float cameraY, float cameraZ)
+	{
+		teleport(getRelative(cameraX, cameraY, cameraZ));
 	}
 
 	void moveHor(float forward, float right, float up)
@@ -88,6 +103,16 @@ public:
 	void addAngle(float dYaw, float dPitch)
 	{
 		setAngle(yaw + dYaw, pitch + dPitch);
+	}
+
+	float getYaw()
+	{
+		return yaw;
+	}
+
+	float getPitch()
+	{
+		return pitch;
 	}
 
 	void updateProjSize(float win_width, float win_height)

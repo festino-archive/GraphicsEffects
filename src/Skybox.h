@@ -87,13 +87,11 @@ public:
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	}
 
-	void draw(Camera* camera)
+	void draw(glm::vec3 camera_pos, float* mvp_centered_loc)
 	{
 		glUseProgram(program);
-        //cout << program << " -> " << next_program << endl;
-        glm::vec3 pos = camera->getPosition();
-        glUniform3fv(cameraLoc, 1, &pos[0]);
-        glUniformMatrix4fv(mvp_centeredLoc, 1, GL_FALSE, camera->getMvp_CenteredLoc());
+        glUniform3fv(cameraLoc, 1, &camera_pos[0]);
+        glUniformMatrix4fv(mvp_centeredLoc, 1, GL_FALSE, mvp_centered_loc);
 		glActiveTexture(GL_TEXTURE0 + skyboxMapID);
         glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxMapID);
         glBindVertexArray(vertexArray);

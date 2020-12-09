@@ -170,7 +170,7 @@
     <ClInclude Include="src\Examples\test_shaders.h" />
     <ClInclude Include="src\FileUtils.h" />
     <ClInclude Include="src\Model.h" />
-    <ClInclude Include="src\ModelCube.h" />
+    <ClInclude Include="src\Utils.h" />
     <ClInclude Include="src\Omnilight.h" />
     <ClInclude Include="src\scene_1.h" />
     <ClInclude Include="src\Skybox.h" />
@@ -178,6 +178,8 @@
     <ClInclude Include="src\Vertex.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="2d.frag" />
+    <None Include="2d.vert" />
     <None Include="NBlinnFragment.glsl" />
     <None Include="NBlinnVertex.glsl" />
     <None Include="raymarcher.frag" />
