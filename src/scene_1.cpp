@@ -38,9 +38,6 @@ GLuint lightsLoc;
 Omnilight lights[2];
 
 Skybox skybox;
-GLuint linearFiltering;
-GLuint colorMapLoc, colorMapID;
-GLuint normalMapLoc, normalMapID;
 vector<Model*> models = vector<Model*>();
 
 bool holdW = false, holdA = false, holdS = false, holdD = false;
@@ -50,7 +47,8 @@ glm::vec3 speed;
 
 void makeCube(float size = 1.0f)
 {
-    Model* model = new Model();
+    Texture* texture = new Texture(program, "prev.png", "normalmap.bmp");
+    Model* model = new Model(texture);
     model->draw();
     models.push_back(model);
 }
@@ -165,14 +163,6 @@ void display()
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightsLoc);
     glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(lights), &lights[0]);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-    //cout << lights[0].light_pos.z << endl;
-
-    glActiveTexture(GL_TEXTURE0 + colorMapID);
-    glBindTexture(GL_TEXTURE_2D, colorMapID);
-    glBindSampler(colorMapID, linearFiltering);
-    glActiveTexture(GL_TEXTURE0 + normalMapID);
-    glBindTexture(GL_TEXTURE_2D, normalMapID);
-    glBindSampler(normalMapID, linearFiltering);
 
     for (Model *model : models)
     {
@@ -213,18 +203,6 @@ void initGL()
     glUseProgram(program);
     mvpLoc = glGetUniformLocation(program, "mvp");
     cameraLoc = glGetUniformLocation(program, "camera");
-
-    // https://www.khronos.org/opengl/wiki/Sampler_Object
-    glGenSamplers(1, &linearFiltering);
-    glSamplerParameteri(linearFiltering, GL_TEXTURE_MAG_FILTER, GL_LINEAR);//_MIPMAP_LINEAR);
-    glSamplerParameteri(linearFiltering, GL_TEXTURE_MIN_FILTER, GL_LINEAR);//_MIPMAP_LINEAR);
-
-    colorMapLoc = glGetUniformLocation(program, "colorMap");
-    normalMapLoc = glGetUniformLocation(program, "normalMap");
-    FileUtils::loadTextures(colorMapID, "prev.png");
-    FileUtils::loadTextures(normalMapID, "normalmap.bmp");
-    glUniform1i(colorMapLoc, colorMapID);
-    glUniform1i(normalMapLoc, normalMapID);
 
     makeCube();
     glGenBuffers(1, &lightsLoc);

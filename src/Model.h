@@ -1,8 +1,9 @@
 #pragma once
 
 #include <GL/glew.h>
-#include "Vertex.h"
 #include <iostream>
+#include "Vertex.h"
+#include "Texture.h"
 
 class Model
 {
@@ -15,8 +16,11 @@ public:
     GLuint vertexBuffer;
     GLuint vertexArray;
 
-    Model()
+    Texture* texture;
+
+    Model(Texture* texture)
     {
+        this->texture = texture;
         vertices_count = 8;
         vertices = new Vertex[vertices_count];
         glm::vec3 poses[] = {
@@ -53,11 +57,12 @@ public:
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, texcoords)));
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
+
     }
 
     void draw()
     {
-        //std::cout << "draw" << std::endl;
+        texture->use();
         glBindVertexArray(vertexArray);
         glDrawElements(GL_QUADS, indices_count, GL_UNSIGNED_INT, indices);
     }

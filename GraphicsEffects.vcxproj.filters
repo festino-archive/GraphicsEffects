@@ -74,6 +74,12 @@
     <ClInclude Include="src\Skybox.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="ModelCube.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Texture.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="raymarcher.frag">
