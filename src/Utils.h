@@ -46,26 +46,31 @@ glm::vec3 flip(glm::vec3 point, glm::vec3 plane1, glm::vec3 plane2)
 
 glm::mat4x4 flipRotation(glm::mat4x4 rot, glm::vec3 plane1, glm::vec3 plane2)
 {
-    rot = glm::inverse(rot);
-    glm::vec4 forward = rot * glm::vec4(0, 0, -1, 1);
-    glm::vec3 orig = glm::vec3(forward);
-    glm::vec3 projected = project(orig, plane1, plane2);
-    //if (glm::dot(orig, projected) < 0)
-    //    angle = 2 * glm::pi<float>() - angle;
-    glm::vec4 right = rot * glm::vec4(1, 0, 0, 1);
-    glm::vec3 orig2 = glm::vec3(right);
-    glm::vec3 projected2 = project(orig2, plane1, plane2);
-    glm::vec4 up = rot * glm::vec4(0, 1, 0, 1);
-    glm::vec3 orig3 = glm::vec3(up);
-    glm::vec3 projected3 = project(orig3, plane1, plane2);
-    float angle_z = glm::acos(glm::length(projected));
-    float angle_y = glm::acos(glm::length(projected3));
-    if (glm::dot(projected, projected2) < 0)
-        angle_z = -angle_z;
-    //cout << angle_z << " <- " << glm::length(projected) << " / " << glm::length(orig) << endl;
-    glm::mat4x4 res = glm::scale(rot, { -1, 1, 1 });
-    res = res * glm::rotate(2 * angle_z, glm::vec3(0, cos(angle_y), -sin(angle_y)));
-    return res;
+    rot = glm::transpose(rot);
+    glm::vec3 center = glm::vec3(0, 0, 0);
+    glm::vec3 right = glm::vec3(rot * glm::vec4(1, 0, 0, 1));
+    glm::vec3 up = glm::vec3(rot * glm::vec4(0, 1, 0, 1));
+    glm::vec3 backward = glm::vec3(rot * glm::vec4(0, 0, 1, 1));
+    center = flip(center, plane1, plane2);
+    right = flip(right, plane1, plane2) - center;
+    up = flip(up, plane1, plane2) - center;
+    backward = flip(backward, plane1, plane2) - center;
+    /*glm::mat4x4 res = {
+        right.x, up.x, backward.x, 0,
+        right.y, up.y, backward.y, 0,
+        right.z, up.z, backward.z, 0,
+        0, 0, 0, 1
+    };*/
+    glm::mat4x4 res = {
+        glm::vec4(right, 0),
+        glm::vec4(up, 0),
+        glm::vec4(backward, 0),
+        glm::vec4(0, 0, 0, 1)
+    };
+    //cout << to_string(right) << " == " << to_string(res * glm::vec4(1, 0, 0, 1)) << endl;
+    //cout << to_string(up) << " == " << to_string(res * glm::vec4(0, 1, 0, 1)) << endl;
+    //cout << to_string(backward) << " == " << to_string(res * glm::vec4(0, 0, 1, 1)) << endl;
+    return glm::transpose(res);
 }
 
 Model* makeStaticCube(float length, glm::vec3 pos, glm::mat4x4 rotation, Texture* texture)
