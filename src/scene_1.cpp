@@ -45,10 +45,13 @@ bool holdSpace = false, holdShift = false;
 glm::vec3 speed;
 
 
-void makeCube(float size = 1.0f)
+void loadModels()
 {
     Texture* texture = new Texture(program, "prev.png", "normalmap.bmp");
     Model* model = makeStaticCube(1, {0,0,0}, glm::identity<glm::mat4>(), texture);
+    models.push_back(model);
+    texture = new Texture(program, "brick.png", "brick_normal.png");
+    model = makeStaticCube(2, { 3,0.5,0 }, glm::identity<glm::mat4>(), texture);
     models.push_back(model);
 }
 
@@ -203,7 +206,7 @@ void initGL()
     mvpLoc = glGetUniformLocation(program, "mvp");
     cameraLoc = glGetUniformLocation(program, "camera");
 
-    makeCube();
+    loadModels();
     glGenBuffers(1, &lightsLoc);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightsLoc);
     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(lights), &lights[0], GL_STATIC_READ);
