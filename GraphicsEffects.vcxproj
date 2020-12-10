@@ -160,7 +160,9 @@
     <ClCompile Include="src\scene_1.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="gl_code.h" />
     <ClInclude Include="src\Camera.h" />
+    <ClInclude Include="src\controls.h" />
     <ClInclude Include="src\Examples\example_1.h" />
     <ClInclude Include="src\Examples\example_2.h" />
     <ClInclude Include="src\Examples\example_3.h" />
@@ -183,6 +185,8 @@
     <None Include="2d.vert" />
     <None Include="NBlinnFragment.glsl" />
     <None Include="NBlinnVertex.glsl" />
+    <None Include="nuller.frag" />
+    <None Include="nuller.vert" />
     <None Include="raymarcher.frag" />
     <None Include="scene_1.frag" />
     <None Include="scene_1.vert" />

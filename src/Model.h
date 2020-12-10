@@ -36,7 +36,8 @@ public:
 
     void draw()
     {
-        texture->use();
+        if (texture != nullptr)
+            texture->use();
         glBindVertexArray(vertexArray);
         glDrawArrays(GL_TRIANGLES, 0, vertices_count);
     }

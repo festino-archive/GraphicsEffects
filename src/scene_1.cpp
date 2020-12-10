@@ -7,6 +7,7 @@
 #include <numeric>
 #include <vector>
 #include <algorithm>
+#include "controls.h"
 #include "Camera.h"
 #include "Model.h"
 #include "Plane.h"
@@ -31,7 +32,8 @@ Skybox skybox;
 vector<Model*> models = vector<Model*>();
 vector<Model*> mirror_faces = vector<Model*>();
 
-Camera cam = Camera(0, 0, glm::vec3(), 0, 0);
+Camera camera = Camera(0, 0, glm::vec3(), 0, 0);
+float fov = 45.0f, near_dist = 0.1f, far_dist = 50.0f;
 
 constexpr float MICROSEC = 1.0f / 1000000;
 constexpr int TIMES_COUNT = 10;
@@ -41,16 +43,23 @@ int times_index = 0;
 chrono::steady_clock::time_point prevFrame;
 bool initFrame = true;
 
-bool is_paused = false;
-bool flag_info = true;
-bool lantern = false;
-Omnilight* lantern_obj;
-float sensitivity_hor = 0.0012; // TODO: make pixel independent
-float sensitivity_vert = 0.0015;
-bool holdW = false, holdA = false, holdS = false, holdD = false;
-bool holdSpace = false, holdShift = false;
-glm::vec3 speed;
+Controller *controller;
 
+void keyDown(unsigned char key, int x, int y)
+{
+    controller->keyDown(key, x, y);
+}
+void keySpecial(int key, int x, int y)
+{
+    controller->keySpecial(key, x, y);
+}
+void keyUp(unsigned char key, int x, int y)
+{
+    controller->keyUp(key, x, y);
+}
+void mouseMove(int mx, int my) {
+    controller->mouseMove(mx, my);
+}
 
 void loadModels()
 {
@@ -77,98 +86,6 @@ void loadModels()
     mirror_faces.push_back(model);
 }
 
-void switch_lantern()
-{
-    if (lantern) {
-        std::vector<Omnilight*>::iterator position = std::find(lights.begin(), lights.end(), lantern_obj);
-        if (position != lights.end())
-            lights.erase(position);
-        delete lantern_obj;
-        lantern_obj = nullptr;
-        lantern = false;
-    } else {
-        lantern_obj = new Omnilight { {0, 0, 0, 1}, {0.82, 0.4, 0.1, 0}, {0.82, 0.4, 0.1, 0}, 0.9, 0.1 };
-        lights.push_back(lantern_obj);
-        lantern = true;
-    }
-}
-
-void keyState(unsigned char key, int x, int y, bool down)
-{
-    key = tolower(key);
-    if (key == 'w')
-        holdW = down;
-    if (key == 's')
-        holdS = down;
-    if (key == 'a')
-        holdA = down;
-    if (key == 'd')
-        holdD = down;
-    if (key == 'l')
-        if (down) {
-            switch_lantern();
-        }
-    if (key == ' ')
-        holdSpace = down;
-    if (key == 112)
-        holdShift = !holdShift;
-    //holdShift = glutGetModifiers() & GLUT_ACTIVE_SHIFT;
-}
-void setPaused(bool val)
-{
-    is_paused = val;
-    if (is_paused) {
-        glutSetCursor(GLUT_CURSOR_LEFT_ARROW);
-    } else {
-        glutSetCursor(GLUT_CURSOR_NONE);
-    }
-}
-void keyDown(unsigned char key, int x, int y)
-{
-    if (key == 27)
-        setPaused(!is_paused);
-    keyState(key, x, y, true);
-}
-void keySpecial(int key, int x, int y)
-{
-    if (key == 27)
-        setPaused(!is_paused);
-    keyState(key, x, y, true);
-}
-void keyUp(unsigned char key, int x, int y)
-{
-    keyState(key, x, y, false);
-}
-
-void mouseMove(int mx, int my) {
-    if (!is_paused) {
-        int dx = mx - win_width / 2;
-        int dy = my - win_height / 2;
-        glutWarpPointer(win_width / 2, win_height / 2);
-        cam.addAngle(dx * sensitivity_hor, dy * sensitivity_vert);
-    }
-}
-
-void moveCamera(float time)
-{
-    speed = glm::vec3();
-    if (holdW)
-        speed.z -= 1;
-    if (holdS)
-        speed.z += 1;
-    if (holdA)
-        speed.x -= 1;
-    if (holdD)
-        speed.x += 1;
-    if (holdSpace)
-        speed.y += 1;
-    if (holdShift)
-        speed.y -= 1;
-
-    speed *= time;
-    cam.moveHor(speed.z, speed.x, speed.y);
-}
-
 void idle()
 {
     chrono::steady_clock::time_point curFrame = chrono::steady_clock::now();
@@ -189,7 +106,7 @@ void idle()
         //cout << "FPS: " << 1 / avg << endl;
 
         // animations
-        moveCamera(avg);
+        controller->moveCamera(avg);
         float angle = full_time / 20;
         movable_light->light_pos = glm::vec4(2 * glm::sin(angle), 1, 2 * glm::cos(angle), 0);
     }
@@ -254,7 +171,7 @@ void renderHUD()
     float y_bottom = r - marker_length;
     float y_top = r;
     glm::vec2 lb(x_left, y_bottom), rb(x_right, y_bottom), lt(x_left, y_top), rt(x_right, y_top);
-    float yaw = cam.getYaw();
+    float yaw = camera.getYaw();
     glm::mat2x2 rot = glm::mat2x2{ cos(yaw), -sin(yaw), sin(yaw), cos(yaw)};
     lb = rot * lb;
     rb = rot * rb;
@@ -272,19 +189,60 @@ void renderHUD()
     glPopMatrix();
 }
 
+void clearDepthRespectsStencil()
+{
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_ALWAYS);
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+
+    //Model* cube = makeStaticCube(far_dist * 2, cam.getPosition(), glm::identity<glm::mat4x4>(), nullptr);
+    //cube->draw();
+    /*
+    glUseProgram(0);
+    //Set up an orthographic projection
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0.0, win_width, win_height, 0.0, -1.0, 0.0);
+    glMatrixMode(GL_MODELVIEW);
+    //glPushMatrix();
+    //glLoadIdentity();
+    //Draw a quad that covers the entire screen
+    glBegin(GL_QUADS);
+    glVertex2f(-1.0f, -1.0f);
+    glVertex2f(1.0f, -1.0f);
+    glVertex2f(1.0f, 1.0f);
+    glVertex2f(-1.0f, 1.0f);
+    float z = 1.0f;
+    glVertex3f(-1.0f, -1.0f, z);
+    glVertex3f(1.0f, -1.0f, z);
+    glVertex3f(1.0f, 1.0f, z);
+    glVertex3f(-1.0f, 1.0f, z);
+    glEnd();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    //glPopMatrix();
+    glUseProgram(program);
+    */
+
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glDepthFunc(GL_LEQUAL);
+}
+
 void display()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    cam.updateMvp();
+    camera.updateMvp();
     glUseProgram(program);
-    glm::vec3 pos = cam.getPosition();
+    glm::vec3 pos = camera.getPosition();
     glUniform3fv(cameraLoc, 1, &pos[0]);
-    glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, cam.getMvpLoc());
+    glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, camera.getMvpLoc());
 
-    if (lantern)
+    if (controller->lantern)
     {
-        lantern_obj->light_pos = glm::vec4(cam.getRelative(-0.5, 0, -0.3), 1);
+        controller->lantern_obj->light_pos = glm::vec4(camera.getRelative(-0.5, 0, -0.3), 1);
     }
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightsLoc);
     Omnilight *lights_arr = new Omnilight[lights.size()];
@@ -311,23 +269,23 @@ void display()
 
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
         glStencilFunc(GL_EQUAL, 1, 1);
+        clearDepthRespectsStencil();
+        //glEnable(GL_DEPTH_TEST);
+        //glDepthMask(GL_TRUE);
+
         Plane plane = Plane(mirror->vertices[0].position, mirror->vertices[1].position, mirror->vertices[2].position);
-        glm::vec3 pos_flipped = plane.flip(cam.getPosition());
-        glm::mat4x4 mvp_flipped_centered = cam.flippedMvp_centered(plane);
+        glm::vec3 pos_flipped = plane.flip(camera.getPosition());
+        glm::mat4x4 mvp_flipped_centered = camera.flippedMvp_centered(plane);
         glm::mat4x4 mvp_flipped = mvp_flipped_centered * glm::translate(-pos_flipped);
-        //cout << pos_flipped.x << " " << pos_flipped.y << " " << pos_flipped.z << endl;
-        //cout << pos.x << " " << pos.y << " " << pos.z << endl;
         glUniform3fv(cameraLoc, 1, &pos_flipped[0]);
         glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, &mvp_flipped[0][0]);
-        //glDisable(GL_DEPTH_TEST);
         renderRegularObjects();
-        //glEnable(GL_DEPTH_TEST);
 
         skybox.draw(pos_flipped, &mvp_flipped_centered[0][0]);
         glUseProgram(program);
 
         glUniform3fv(cameraLoc, 1, &pos[0]);
-        glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, cam.getMvpLoc());
+        glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, camera.getMvpLoc());
         glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
         glStencilFunc(GL_ALWAYS, 0, 1);
         glDepthFunc(GL_ALWAYS);
@@ -339,9 +297,9 @@ void display()
         glDisable(GL_STENCIL_TEST);
     }
 
-    skybox.draw(cam.getPosition(), cam.getMvp_CenteredLoc());
+    skybox.draw(camera.getPosition(), camera.getMvp_CenteredLoc());
 
-    if (flag_info)
+    if (controller->flag_info)
     {
         renderHUD();
     }
@@ -353,7 +311,7 @@ void reshape(int width, int height)
 {
     win_width = width;
     win_height = height;
-    cam.updateProjSize(win_width, win_height);
+    camera.updateProjSize(win_width, win_height);
     glViewport(0, 0, win_width, win_height);
     times.clear();
     times_index = 0;
@@ -362,7 +320,8 @@ void reshape(int width, int height)
 
 void initCamera()
 {
-    cam = Camera(0, 0, glm::vec3(0, 0, 1), win_width, win_height);
+    camera = Camera(0, 0, glm::vec3(0, 0, 1), win_width, win_height);
+    camera.setProjParams(fov, near_dist, far_dist);
 }
 
 void initGL()
@@ -417,16 +376,16 @@ int start_scene_1(int argc, char** argv)
 
     initGL();
     initCamera();
-    setPaused(false);
-    glutReshapeFunc(reshape);
-    glutDisplayFunc(display);
-    glutIdleFunc(idle);
-
+    controller = new Controller(&win_width, &win_height, &camera, &lights);
     glutSpecialFunc(keySpecial);
     glutKeyboardFunc(keyDown);
     glutKeyboardUpFunc(keyUp);
-    glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
     glutPassiveMotionFunc(mouseMove);
+    glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
+
+    glutReshapeFunc(reshape);
+    glutDisplayFunc(display);
+    glutIdleFunc(idle);
 
     glutMainLoop();
     return 0;

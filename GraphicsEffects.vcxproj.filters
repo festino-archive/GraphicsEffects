@@ -16,6 +16,9 @@
     <Filter Include="Examples">
       <UniqueIdentifier>{e0c1eb13-c061-426a-b078-f5fdaf5598f0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\shaders">
+      <UniqueIdentifier>{25d22bb9-4d59-46fc-82ba-253e814067d7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -83,34 +86,46 @@
     <ClInclude Include="src\Plane.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="gl_code.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\controls.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="raymarcher.frag">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="scene_1.frag">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="scene_1.vert">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include="NBlinnVertex.glsl">
       <Filter>Examples</Filter>
     </None>
     <None Include="NBlinnFragment.glsl">
       <Filter>Examples</Filter>
     </None>
-    <None Include="skybox.frag">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="skybox.vert">
-      <Filter>Source Files</Filter>
+    <None Include="2d.vert">
+      <Filter>Source Files\shaders</Filter>
     </None>
     <None Include="2d.frag">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="2d.vert">
-      <Filter>Source Files</Filter>
+    <None Include="nuller.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="nuller.vert">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="raymarcher.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="scene_1.vert">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="scene_1.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="skybox.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="skybox.vert">
+      <Filter>Source Files\shaders</Filter>
     </None>
   </ItemGroup>
 </Project>
