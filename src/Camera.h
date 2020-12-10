@@ -51,9 +51,9 @@ public:
 		mvp = mvp_centered * glm::translate(-pos);
 	}
 
-	glm::mat4x4 flippedMvp_centered(glm::vec3 plane1, glm::vec3 plane2)
+	glm::mat4x4 flippedMvp_centered(Plane &plane)
 	{
-		return proj * flipRotation(rot, plane1, plane2);
+		return proj * plane.flipRotation(rot);
 	}
 
 	void teleport(glm::vec3 to)

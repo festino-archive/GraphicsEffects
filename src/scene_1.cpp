@@ -9,6 +9,7 @@
 #include <algorithm>
 #include "Camera.h"
 #include "Model.h"
+#include "Plane.h"
 #include "Utils.h"
 #include "Omnilight.h"
 #include "Skybox.h"
@@ -61,17 +62,18 @@ void loadModels()
     models.push_back(model);
 
     texture = new Texture(program, "prev.png", "smooth_normal.png");
-    Vertex* vertices = new Vertex[3];
-    vertices[0] = { {-0.5, -0.5, 0}, {0, 0} };
-    vertices[1] = { {0.5, -0.5, 0}, {0, 0} };
-    vertices[2] = { {0.5, 0.5, 0}, {0, 0} };
-    model = new Model(3, vertices, texture);
-    mirror_faces.push_back(model);
-    Vertex* vertices2 = new Vertex[3];
-    vertices2[0] = { {-0.5, -0.5, 0}, {0, 0} };
-    vertices2[1] = { {-0.5, 0.5, 0}, {0, 0} };
-    vertices2[2] = { {0.5, 0.5, 0}, {0, 0} };
-    model = new Model(3, vertices2, texture);
+    glm::vec3 p1 = { -3.5, -1.5, 1.5 };
+    glm::vec3 p3 = { -3.5, 1.5, 1.5 };
+    glm::vec3 p2 = { 0.5, -1.5, 3.5 };
+    glm::vec3 p4 = { 0.5, 1.5, 3.5 };
+    Vertex* vertices = new Vertex[6];
+    vertices[0] = { p1, {0, 0} };
+    vertices[1] = { p2, {0, 0} };
+    vertices[2] = { p4, {0, 0} };
+    vertices[3] = { p1, {0, 0} };
+    vertices[4] = { p3, {0, 0} };
+    vertices[5] = { p4, {0, 0} };
+    model = new Model(6, vertices, texture);
     mirror_faces.push_back(model);
 }
 
@@ -184,8 +186,10 @@ void idle()
             times_index = 0;
 
         double avg = std::accumulate(times.begin(), times.end(), 0.0) / times.size();
-        moveCamera(avg);
+        //cout << "FPS: " << 1 / avg << endl;
+
         // animations
+        moveCamera(avg);
         float angle = full_time / 20;
         movable_light->light_pos = glm::vec4(2 * glm::sin(angle), 1, 2 * glm::cos(angle), 0);
     }
@@ -307,10 +311,9 @@ void display()
 
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
         glStencilFunc(GL_EQUAL, 1, 1);
-        glm::vec3 a = { mirror->vertices[1].position - mirror->vertices[0].position };
-        glm::vec3 b = { mirror->vertices[2].position - mirror->vertices[0].position };
-        glm::vec3 pos_flipped = flip(cam.getPosition(), a, b);
-        glm::mat4x4 mvp_flipped_centered = cam.flippedMvp_centered(a, b);
+        Plane plane = Plane(mirror->vertices[0].position, mirror->vertices[1].position, mirror->vertices[2].position);
+        glm::vec3 pos_flipped = plane.flip(cam.getPosition());
+        glm::mat4x4 mvp_flipped_centered = cam.flippedMvp_centered(plane);
         glm::mat4x4 mvp_flipped = mvp_flipped_centered * glm::translate(-pos_flipped);
         //cout << pos_flipped.x << " " << pos_flipped.y << " " << pos_flipped.z << endl;
         //cout << pos.x << " " << pos.y << " " << pos.z << endl;
@@ -359,7 +362,7 @@ void reshape(int width, int height)
 
 void initCamera()
 {
-    cam = Camera(0, 0, glm::vec3(0, 0, 2), win_width, win_height);
+    cam = Camera(0, 0, glm::vec3(0, 0, 1), win_width, win_height);
 }
 
 void initGL()
