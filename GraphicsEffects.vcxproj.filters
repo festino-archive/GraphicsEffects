@@ -86,9 +86,6 @@
     <ClInclude Include="src\Plane.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="gl_code.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\controls.h">
       <Filter>Source Files</Filter>
     </ClInclude>

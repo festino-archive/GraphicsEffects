@@ -20,6 +20,7 @@ using namespace std;
 int win_width = 1280;
 int win_height = 720;
 GLuint program;
+GLuint program_depth_nuller;
 GLuint program_2d;
 GLuint color_maskLoc, white_textureLoc, white_textureID, linearFiltering;
 
@@ -194,38 +195,14 @@ void clearDepthRespectsStencil()
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_ALWAYS);
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-
-    //Model* cube = makeStaticCube(far_dist * 2, cam.getPosition(), glm::identity<glm::mat4x4>(), nullptr);
-    //cube->draw();
-    /*
-    glUseProgram(0);
-    //Set up an orthographic projection
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    glOrtho(0.0, win_width, win_height, 0.0, -1.0, 0.0);
-    glMatrixMode(GL_MODELVIEW);
-    //glPushMatrix();
-    //glLoadIdentity();
-    //Draw a quad that covers the entire screen
+    glUseProgram(program_depth_nuller);
     glBegin(GL_QUADS);
     glVertex2f(-1.0f, -1.0f);
     glVertex2f(1.0f, -1.0f);
     glVertex2f(1.0f, 1.0f);
     glVertex2f(-1.0f, 1.0f);
-    float z = 1.0f;
-    glVertex3f(-1.0f, -1.0f, z);
-    glVertex3f(1.0f, -1.0f, z);
-    glVertex3f(1.0f, 1.0f, z);
-    glVertex3f(-1.0f, 1.0f, z);
     glEnd();
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    //glPopMatrix();
     glUseProgram(program);
-    */
-
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glDepthFunc(GL_LEQUAL);
 }
@@ -270,8 +247,6 @@ void display()
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
         glStencilFunc(GL_EQUAL, 1, 1);
         clearDepthRespectsStencil();
-        //glEnable(GL_DEPTH_TEST);
-        //glDepthMask(GL_TRUE);
 
         Plane plane = Plane(mirror->vertices[0].position, mirror->vertices[1].position, mirror->vertices[2].position);
         glm::vec3 pos_flipped = plane.flip(camera.getPosition());
@@ -332,6 +307,8 @@ void initGL()
     skybox = Skybox();
     skybox.init();
 
+    FileUtils::loadShaders(program_depth_nuller, "nuller.vert", "nuller.frag");
+
     FileUtils::loadShaders(program_2d, "2d.vert", "2d.frag");
     glUseProgram(program_2d);
     white_textureLoc = glGetUniformLocation(program_2d, "guiTexture");
@@ -353,7 +330,7 @@ void initGL()
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, lightsLoc);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
     lights.push_back(new Omnilight { {1, 0.5, 1, 0}, {0.9, 1, 0.9, 0}, {0.9, 1, 0.9, 0}, 0.7, 0.2 });
-    movable_light = new Omnilight{ {0, 1, 2, 0}, {0.9, 0, 0, 0}, {0.9, 0, 0, 0}, 0.7, 0.2 };
+    movable_light = new Omnilight { {0, 1, 2, 0}, {0.9, 0, 0, 0}, {0.9, 0, 0, 0}, 0.7, 0.2 };
     lights.push_back(movable_light);
 
     glClearColor(0.0, 0.0, 0.0, 0.0);

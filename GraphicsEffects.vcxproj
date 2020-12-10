@@ -160,7 +160,6 @@
     <ClCompile Include="src\scene_1.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="gl_code.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\controls.h" />
     <ClInclude Include="src\Examples\example_1.h" />
