@@ -160,6 +160,7 @@
     <ClCompile Include="src\scene_1.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="example_6.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\controls.h" />
     <ClInclude Include="src\Examples\example_1.h" />
@@ -187,10 +188,12 @@
     <None Include="nuller.frag" />
     <None Include="nuller.vert" />
     <None Include="raymarcher.frag" />
-    <None Include="scene_1.frag" />
-    <None Include="scene_1.vert" />
+    <None Include="main.frag" />
+    <None Include="main.vert" />
     <None Include="skybox.frag" />
     <None Include="skybox.vert" />
+    <None Include="write_depth.frag" />
+    <None Include="write_depth.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -27,6 +27,7 @@ in vec3 toCamera_unnorm;
 in vec2 texCoords;
 out vec4 color;
 
+uniform sampler2D min_z;
 
 void main() {
 	vec4 normal_unnorm = texture2D(normalMap, texCoords);
@@ -58,5 +59,6 @@ void main() {
 	rgb *= objectColor;
 	//rgb = normal;
 	//rgb = vec4(vec3( (2.0 * 0.1f) / (50.0f + 0.1f - (gl_FragCoord.z * 2.0 - 1.0) * (50.0f - 0.1f)) ), 1);
+	//rgb = texture(min_z, gl_FragCoord.xy / vec2(1280, 720));
 	color = rgb;
 }

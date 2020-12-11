@@ -89,6 +89,9 @@
     <ClInclude Include="src\controls.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="example_6.h">
+      <Filter>Examples</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="NBlinnVertex.glsl">
@@ -112,16 +115,22 @@
     <None Include="raymarcher.frag">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="scene_1.vert">
-      <Filter>Source Files\shaders</Filter>
-    </None>
-    <None Include="scene_1.frag">
-      <Filter>Source Files\shaders</Filter>
-    </None>
     <None Include="skybox.frag">
       <Filter>Source Files\shaders</Filter>
     </None>
     <None Include="skybox.vert">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="main.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="main.vert">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="write_depth.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="write_depth.vert">
       <Filter>Source Files\shaders</Filter>
     </None>
   </ItemGroup>

@@ -22,18 +22,22 @@ int win_height = 720;
 GLuint program;
 GLuint program_depth_nuller;
 GLuint program_2d;
+GLuint program_write_min_z;
 GLuint color_maskLoc, white_textureLoc, white_textureID, linearFiltering;
 
-GLuint mvpLoc, cameraLoc;
+GLuint mvpLoc, cameraLoc, min_z_mvpLoc;
 GLuint lightsLoc;
-vector<Omnilight*> lights = vector<Omnilight*>();
-Omnilight* movable_light;
+GLuint min_z_fbo, min_z_texture, min_zLoc;
+//GLenum DrawBuffers[1] = { GL_DEPTH_ATTACHMENT };
 
 Skybox skybox;
+vector<Omnilight*> lights = vector<Omnilight*>();
+Omnilight* movable_light;
 vector<Model*> models = vector<Model*>();
 vector<Model*> mirror_faces = vector<Model*>();
 
 Camera camera = Camera(0, 0, glm::vec3(), 0, 0);
+glm::vec3 init_pos = glm::vec3(-2, 0, 8);
 float fov = 45.0f, near_dist = 0.1f, far_dist = 50.0f;
 
 constexpr float MICROSEC = 1.0f / 1000000;
@@ -236,6 +240,7 @@ void display()
     {
         glEnable(GL_STENCIL_TEST);
 
+        // set up stencil
         glStencilOp(GL_ZERO, GL_ZERO, GL_REPLACE);
         glStencilFunc(GL_ALWAYS, 1, 1);
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
@@ -243,11 +248,23 @@ void display()
         mirror->draw();
         glDepthMask(GL_TRUE);
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
         glStencilFunc(GL_EQUAL, 1, 1);
-        clearDepthRespectsStencil();
 
+        glUseProgram(program_write_min_z);
+        glUniformMatrix4fv(min_z_mvpLoc, 1, GL_FALSE, camera.getMvpLoc());
+        glBindFramebuffer(GL_FRAMEBUFFER, min_z_fbo);
+        glDisable(GL_ALPHA_TEST);
+        mirror->draw();
+        glEnable(GL_ALPHA_TEST);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        clearDepthRespectsStencil();
+        min_zLoc = glGetUniformLocation(program, "min_z");
+        glUniform1i(min_zLoc, min_z_texture);
+        glActiveTexture(GL_TEXTURE0 + min_z_texture);
+        glBindTexture(GL_TEXTURE_2D, min_z_texture);
+
+        // render mirrored objects
         Plane plane = Plane(mirror->vertices[0].position, mirror->vertices[1].position, mirror->vertices[2].position);
         glm::vec3 pos_flipped = plane.flip(camera.getPosition());
         glm::mat4x4 mvp_flipped_centered = camera.flippedMvp_centered(plane);
@@ -256,11 +273,13 @@ void display()
         glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, &mvp_flipped[0][0]);
         renderRegularObjects();
 
+        // render mirrored skybox
         skybox.draw(pos_flipped, &mvp_flipped_centered[0][0]);
-        glUseProgram(program);
 
+        glUseProgram(program);
         glUniform3fv(cameraLoc, 1, &pos[0]);
         glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, camera.getMvpLoc());
+        // set correct z-buffer
         glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
         glStencilFunc(GL_ALWAYS, 0, 1);
         glDepthFunc(GL_ALWAYS);
@@ -268,6 +287,11 @@ void display()
         mirror->draw();
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
         glDepthFunc(GL_LEQUAL);
+        glBindFramebuffer(GL_FRAMEBUFFER, min_z_fbo);
+        glClearNamedFramebufferfi(min_z_fbo, GL_DEPTH, 0, 1.0, 0);
+        //glClear(GL_DEPTH_BUFFER_BIT);
+        //glClearDepth(0.0f);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glDisable(GL_STENCIL_TEST);
     }
@@ -295,15 +319,34 @@ void reshape(int width, int height)
 
 void initCamera()
 {
-    camera = Camera(0, 0, glm::vec3(0, 0, 1), win_width, win_height);
+    camera = Camera(0, 0, init_pos, win_width, win_height);
     camera.setProjParams(fov, near_dist, far_dist);
+}
+
+void initFBO()
+{
+    FileUtils::loadShaders(program_write_min_z, "write_depth.vert", "write_depth.frag");
+    min_z_mvpLoc = glGetUniformLocation(program_write_min_z, "mvp");
+    glGenFramebuffers(1, &min_z_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, min_z_fbo);
+    glGenTextures(1, &min_z_texture);
+    glBindTexture(GL_TEXTURE_2D, min_z_texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, win_width, win_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0); // update size
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, min_z_texture, 0);
+    //glDrawBuffers(1, DrawBuffers);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "Min z framebuffer error" << std::endl;
+
+    min_zLoc = glGetUniformLocation(program, "min_z");
+    glUniform1i(min_zLoc, min_z_texture);
 }
 
 void initGL()
 {
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
-
     skybox = Skybox();
     skybox.init();
 
@@ -318,12 +361,11 @@ void initGL()
     glSamplerParameteri(linearFiltering, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glSamplerParameteri(linearFiltering, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-    FileUtils::loadShaders(program, "scene_1.vert", "scene_1.frag");
+    FileUtils::loadShaders(program, "main.vert", "main.frag");
     glUseProgram(program);
     mvpLoc = glGetUniformLocation(program, "mvp");
     cameraLoc = glGetUniformLocation(program, "camera");
 
-    loadModels();
     glGenBuffers(1, &lightsLoc);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightsLoc);
     glBufferData(GL_SHADER_STORAGE_BUFFER, lights.size() * sizeof(Omnilight), &lights[0], GL_STATIC_READ);
@@ -333,8 +375,13 @@ void initGL()
     movable_light = new Omnilight { {0, 1, 2, 0}, {0.9, 0, 0, 0}, {0.9, 0, 0, 0}, 0.7, 0.2 };
     lights.push_back(movable_light);
 
+    initFBO();
+    loadModels();
+
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // GL_LINE
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
 }
 
 int start_scene_1(int argc, char** argv)
