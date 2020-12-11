@@ -17,6 +17,13 @@ string to_string(glm::vec3 v)
     return ss.str();
 }
 
+string to_string(glm::vec4 v)
+{
+    std::ostringstream ss;
+    ss << "(" << v.x << ", " << v.y << ", " << v.z << ", " << v.w << ")";
+    return ss.str();
+}
+
 Model* makeStaticCube(float length, glm::vec3 pos, glm::mat4x4 rotation, Texture* texture)
 {
     float cubeVertices[] = {

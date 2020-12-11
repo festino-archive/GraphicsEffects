@@ -18,6 +18,8 @@ public:
     float sensitivity_vert = 0.0015;
     bool holdW = false, holdA = false, holdS = false, holdD = false;
     bool holdSpace = false, holdShift = false;
+
+    float movement_speed = 5.0f;
     glm::vec3 speed;
 
     int *win_width, *win_height;
@@ -124,7 +126,7 @@ public:
         if (holdShift)
             speed.y -= 1;
 
-        speed *= time;
+        speed *= time * movement_speed;
         cam->moveHor(speed.z, speed.x, speed.y);
     }
 };

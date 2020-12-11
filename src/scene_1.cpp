@@ -21,6 +21,7 @@ int win_width = 1280;
 int win_height = 720;
 GLuint program;
 GLuint program_depth_nuller;
+GLuint nuller_zLoc;
 GLuint program_2d;
 GLuint program_write_min_z;
 GLuint color_maskLoc, white_textureLoc, white_textureID, linearFiltering;
@@ -37,7 +38,8 @@ vector<Model*> models = vector<Model*>();
 vector<Model*> mirror_faces = vector<Model*>();
 
 Camera camera = Camera(0, 0, glm::vec3(), 0, 0);
-glm::vec3 init_pos = glm::vec3(-2, 0, 8);
+float init_yaw = 45, init_pitch = 0;
+glm::vec3 init_pos = glm::vec3(-19, 1, 18);
 float fov = 45.0f, near_dist = 0.1f, far_dist = 50.0f;
 
 constexpr float MICROSEC = 1.0f / 1000000;
@@ -74,6 +76,15 @@ void loadModels()
     texture = new Texture(program, "brick.png", "brick_normal.png");
     model = makeStaticCube(2, { 3, 0.5, 0 }, glm::identity<glm::mat4>(), texture);
     models.push_back(model);
+
+    float size = 1;
+    float offset = -3.5;
+    for (int i = 0; i < 10; i++) {
+        size *= 0.9;
+        model = makeStaticCube(size, { 0, 0, offset }, glm::identity<glm::mat4>(), texture);
+        offset -= 1 + size;
+        models.push_back(model);
+    }
 
     texture = new Texture(program, "prev.png", "smooth_normal.png");
     glm::vec3 p1 = { -3.5, -1.5, 1.5 };
@@ -194,12 +205,14 @@ void renderHUD()
     glPopMatrix();
 }
 
-void clearDepthRespectsStencil()
+void clearDepthRespectsStencil(float depth)
 {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_ALWAYS);
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
     glUseProgram(program_depth_nuller);
+    glUniform1f(nuller_zLoc, depth);
+    
     glBegin(GL_QUADS);
     glVertex2f(-1.0f, -1.0f);
     glVertex2f(1.0f, -1.0f);
@@ -211,8 +224,16 @@ void clearDepthRespectsStencil()
     glDepthFunc(GL_LEQUAL);
 }
 
+void clearMinZ()
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, min_z_fbo);
+    clearDepthRespectsStencil(0.0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void display()
 {
+    clearMinZ();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     camera.updateMvp();
@@ -254,11 +275,13 @@ void display()
         glUseProgram(program_write_min_z);
         glUniformMatrix4fv(min_z_mvpLoc, 1, GL_FALSE, camera.getMvpLoc());
         glBindFramebuffer(GL_FRAMEBUFFER, min_z_fbo);
+        glDepthFunc(GL_GREATER);
         glDisable(GL_ALPHA_TEST);
         mirror->draw();
         glEnable(GL_ALPHA_TEST);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        clearDepthRespectsStencil();
+
+        clearDepthRespectsStencil(1.0);
         min_zLoc = glGetUniformLocation(program, "min_z");
         glUniform1i(min_zLoc, min_z_texture);
         glActiveTexture(GL_TEXTURE0 + min_z_texture);
@@ -269,9 +292,12 @@ void display()
         glm::vec3 pos_flipped = plane.flip(camera.getPosition());
         glm::mat4x4 mvp_flipped_centered = camera.flippedMvp_centered(plane);
         glm::mat4x4 mvp_flipped = mvp_flipped_centered * glm::translate(-pos_flipped);
+        //cout << to_string(mvp_flipped * glm::vec4(pos_flipped, 1.0f)) << " " << to_string(mvp_flipped * glm::vec4(0.0, 0.0, 0.0, 1.0f)) << endl;
         glUniform3fv(cameraLoc, 1, &pos_flipped[0]);
         glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, &mvp_flipped[0][0]);
         renderRegularObjects();
+
+        clearMinZ();
 
         // render mirrored skybox
         skybox.draw(pos_flipped, &mvp_flipped_centered[0][0]);
@@ -287,11 +313,6 @@ void display()
         mirror->draw();
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
         glDepthFunc(GL_LEQUAL);
-        glBindFramebuffer(GL_FRAMEBUFFER, min_z_fbo);
-        glClearNamedFramebufferfi(min_z_fbo, GL_DEPTH, 0, 1.0, 0);
-        //glClear(GL_DEPTH_BUFFER_BIT);
-        //glClearDepth(0.0f);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glDisable(GL_STENCIL_TEST);
     }
@@ -319,7 +340,7 @@ void reshape(int width, int height)
 
 void initCamera()
 {
-    camera = Camera(0, 0, init_pos, win_width, win_height);
+    camera = Camera(init_yaw, init_pitch, init_pos, win_width, win_height);
     camera.setProjParams(fov, near_dist, far_dist);
 }
 
@@ -334,7 +355,7 @@ void initFBO()
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, win_width, win_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0); // update size
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_GEQUAL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, min_z_texture, 0);
     //glDrawBuffers(1, DrawBuffers);
@@ -351,6 +372,7 @@ void initGL()
     skybox.init();
 
     FileUtils::loadShaders(program_depth_nuller, "nuller.vert", "nuller.frag");
+    nuller_zLoc = glGetUniformLocation(program_depth_nuller, "z");
 
     FileUtils::loadShaders(program_2d, "2d.vert", "2d.frag");
     glUseProgram(program_2d);
