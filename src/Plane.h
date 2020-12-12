@@ -29,6 +29,18 @@ public:
             height = -height;
     }
 
+    glm::vec3 intersection(glm::vec3 point, glm::vec3 base)
+    {
+        float dp = a.x * b.y * base.z + a.y * b.z * base.x + a.z * b.x * base.y;
+        float dn = a.z * b.y * base.x + a.x * b.z * base.y + a.y * b.x * base.z;
+        float d = dp - dn;
+        glm::vec3 right = point - height;
+        float dbazep = a.x * b.y * right.z + a.y * b.z * right.x + a.z * b.x * right.y;
+        float dbazen = a.z * b.y * right.x + a.x * b.z * right.y + a.y * b.x * right.z;
+        float dbaze = dbazep - dbazen;
+        return point + base * (dbaze / d);
+    }
+
     glm::vec3 project(glm::vec3 point)
     {
         point -= height;

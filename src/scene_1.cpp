@@ -26,10 +26,10 @@ GLuint program_2d;
 GLuint program_write_min_z;
 GLuint color_maskLoc, white_textureLoc, white_textureID, linearFiltering;
 
-GLuint mvpLoc, cameraLoc, min_z_mvpLoc;
+GLuint mvpLoc, cameraLoc, shift_centerLoc, shift_rightLoc, shift_topLoc;
 GLuint lightsLoc;
-GLuint min_z_fbo, min_z_texture, min_zLoc;
-//GLenum DrawBuffers[1] = { GL_DEPTH_ATTACHMENT };
+
+GLuint min_z_fbo, min_z_texture, min_zLoc, min_z_mvpLoc;
 
 Skybox skybox;
 vector<Omnilight*> lights = vector<Omnilight*>();
@@ -38,8 +38,8 @@ vector<Model*> models = vector<Model*>();
 vector<Model*> mirror_faces = vector<Model*>();
 
 Camera camera = Camera(0, 0, glm::vec3(), 0, 0);
-float init_yaw = 45, init_pitch = 0;
-glm::vec3 init_pos = glm::vec3(-19, 1, 18);
+float init_yaw = 0, init_pitch = 0;
+glm::vec3 init_pos = glm::vec3(0, 0, 4);
 float fov = 45.0f, near_dist = 0.1f, far_dist = 50.0f;
 
 constexpr float MICROSEC = 1.0f / 1000000;
@@ -92,6 +92,20 @@ void loadModels()
     glm::vec3 p2 = { 0.5, -1.5, 3.5 };
     glm::vec3 p4 = { 0.5, 1.5, 3.5 };
     Vertex* vertices = new Vertex[6];
+    vertices[0] = { p1, {0, 0} };
+    vertices[1] = { p2, {0, 0} };
+    vertices[2] = { p4, {0, 0} };
+    vertices[3] = { p1, {0, 0} };
+    vertices[4] = { p3, {0, 0} };
+    vertices[5] = { p4, {0, 0} };
+    model = new Model(6, vertices, texture);
+    //mirror_faces.push_back(model);
+
+    p1 = { -0.5, -0.5, 1.5 };
+    p3 = { -0.5, 0.5, 1.5 };
+    p2 = { 0.5, -0.5, 1.5 };
+    p4 = { 0.5, 0.5, 1.5 };
+    vertices = new Vertex[6];
     vertices[0] = { p1, {0, 0} };
     vertices[1] = { p2, {0, 0} };
     vertices[2] = { p4, {0, 0} };
@@ -241,6 +255,9 @@ void display()
     glm::vec3 pos = camera.getPosition();
     glUniform3fv(cameraLoc, 1, &pos[0]);
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, camera.getMvpLoc());
+    glUniform1f(shift_centerLoc, 0.0f);
+    glUniform1f(shift_rightLoc, 0.0f);
+    glUniform1f(shift_topLoc, 0.0f);
 
     if (controller->lantern)
     {
@@ -292,12 +309,31 @@ void display()
         glm::vec3 pos_flipped = plane.flip(camera.getPosition());
         glm::mat4x4 mvp_flipped_centered = camera.flippedMvp_centered(plane);
         glm::mat4x4 mvp_flipped = mvp_flipped_centered * glm::translate(-pos_flipped);
+        glm::vec4 z_forward = camera.getRot() * glm::vec4(0, 0, -1, 1);
+        glm::mat4x4 mvp_inversed = glm::inverse(camera.getMvp());
+        glm::vec4 right_point = mvp_inversed * glm::vec4(1, 0, 0, 1);
+        glm::vec4 top_point = mvp_inversed * glm::vec4(0, 1, 0, 1);
+        right_point /= right_point.w;
+        top_point /= top_point.w;
+        //cout << to_string(pos) << to_string(right_point) << to_string(top_point) << endl;
+        glm::vec3 central_intersection = plane.intersection(pos, z_forward);
+        glm::vec3 right_intersection = plane.intersection(glm::vec3(right_point), z_forward);
+        glm::vec3 top_intersection = plane.intersection(glm::vec3(top_point), z_forward);
+        //cout << to_string(pos) << to_string(right_point) << to_string(top_point) << endl;
+        //cout << to_string(mvp_flipped * glm::vec4(central_intersection, 1.0) - camera.getMvp() * glm::vec4(central_intersection, 1.0)) << endl;
+        //cout << to_string(central_intersection) << to_string(right_intersection) << to_string(top_intersection) << endl;
+        glUniform1f(shift_centerLoc, plane.intersection(pos, z_forward).z);
+        glUniform1f(shift_rightLoc, right_intersection.z);
+        glUniform1f(shift_topLoc, top_intersection.z);
         //cout << to_string(mvp_flipped * glm::vec4(pos_flipped, 1.0f)) << " " << to_string(mvp_flipped * glm::vec4(0.0, 0.0, 0.0, 1.0f)) << endl;
         glUniform3fv(cameraLoc, 1, &pos_flipped[0]);
         glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, &mvp_flipped[0][0]);
         renderRegularObjects();
 
         clearMinZ();
+        glUniform1f(shift_centerLoc, 0.0f);
+        glUniform1f(shift_rightLoc, 0.0f);
+        glUniform1f(shift_topLoc, 0.0f);
 
         // render mirrored skybox
         skybox.draw(pos_flipped, &mvp_flipped_centered[0][0]);
@@ -387,6 +423,9 @@ void initGL()
     glUseProgram(program);
     mvpLoc = glGetUniformLocation(program, "mvp");
     cameraLoc = glGetUniformLocation(program, "camera");
+    shift_centerLoc = glGetUniformLocation(program, "center_shift");
+    shift_rightLoc = glGetUniformLocation(program, "right_shift");
+    shift_topLoc = glGetUniformLocation(program, "top_shift");
 
     glGenBuffers(1, &lightsLoc);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightsLoc);

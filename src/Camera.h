@@ -28,6 +28,14 @@ private:
 		proj = glm::perspectiveRH(fov, win_width / win_height, near_dist, far_dist);
 	}
 public:
+	glm::mat4x4 getRot()
+	{
+		return rot;
+	}
+	glm::mat4x4 getMvp()
+	{
+		return mvp;
+	}
 	glm::mat4x4 getMvp_Centered()
 	{
 		return mvp_centered;
