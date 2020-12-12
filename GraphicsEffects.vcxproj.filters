@@ -41,9 +41,6 @@
     <ClInclude Include="src\scene_1.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Model.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Vertex.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -91,6 +88,18 @@
     </ClInclude>
     <ClInclude Include="example_6.h">
       <Filter>Examples</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Portal.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PortalPair.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TexturedModel.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Model.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

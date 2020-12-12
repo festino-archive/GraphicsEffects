@@ -3,8 +3,9 @@
 #include <GL/glew.h>
 #include <iostream>
 #include "Vertex.h"
+#include "Texture.h"
 
-class Model
+class TexturedModel
 {
 public:
     int vertices_count;
@@ -13,10 +14,13 @@ public:
     GLuint vertexBuffer;
     GLuint vertexArray;
 
-    Model(int vertices_count, Vertex* vertices)
+    Texture* texture;
+
+    TexturedModel(int vertices_count, Vertex* vertices, Texture* texture)
     {
         this->vertices_count = vertices_count;
         this->vertices = vertices;
+        this->texture = texture;
 
         glGenBuffers(1, &vertexBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -32,6 +36,8 @@ public:
 
     void draw()
     {
+        if (texture != nullptr)
+            texture->use();
         glBindVertexArray(vertexArray);
         glDrawArrays(GL_TRIANGLES, 0, vertices_count);
     }

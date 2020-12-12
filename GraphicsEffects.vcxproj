@@ -172,7 +172,10 @@
     <ClInclude Include="src\Examples\test_shaders.h" />
     <ClInclude Include="src\FileUtils.h" />
     <ClInclude Include="src\Model.h" />
+    <ClInclude Include="src\TexturedModel.h" />
     <ClInclude Include="src\Plane.h" />
+    <ClInclude Include="src\Portal.h" />
+    <ClInclude Include="src\PortalPair.h" />
     <ClInclude Include="src\Utils.h" />
     <ClInclude Include="src\Omnilight.h" />
     <ClInclude Include="src\scene_1.h" />

@@ -56,6 +56,10 @@ public:
 	{
 		return &mvp[0][0];
 	}
+	float* getPosLoc()
+	{
+		return &pos[0];
+	}
 	glm::vec3 getPosition()
 	{
 		return pos;

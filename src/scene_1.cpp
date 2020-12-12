@@ -9,11 +9,13 @@
 #include <algorithm>
 #include "controls.h"
 #include "Camera.h"
-#include "Model.h"
 #include "Plane.h"
+#include "Skybox.h"
 #include "Utils.h"
 #include "Omnilight.h"
-#include "Skybox.h"
+#include "Model.h"
+#include "TexturedModel.h"
+#include "PortalPair.h"
 
 using namespace std;
 
@@ -26,7 +28,7 @@ GLuint program_2d;
 GLuint program_write_min_z;
 GLuint color_maskLoc, white_textureLoc, white_textureID, linearFiltering;
 
-GLuint mvpLoc, cameraLoc, shift_centerLoc, shift_rightLoc, shift_topLoc;
+GLuint mvpLoc, cameraLoc;
 GLuint lightsLoc;
 
 GLuint min_z_fbo, min_z_texture, min_zLoc, min_z_mvpLoc;
@@ -34,8 +36,9 @@ GLuint min_z_fbo, min_z_texture, min_zLoc, min_z_mvpLoc;
 Skybox skybox;
 vector<Omnilight*> lights = vector<Omnilight*>();
 Omnilight* movable_light;
-vector<Model*> models = vector<Model*>();
+vector<TexturedModel*> models = vector<TexturedModel*>();
 vector<Model*> mirror_faces = vector<Model*>();
+vector<PortalPair*> portals = vector<PortalPair*>();
 
 Camera camera = Camera(0, 0, glm::vec3(), 0, 0);
 float init_yaw = 0, init_pitch = 0;
@@ -71,7 +74,7 @@ void mouseMove(int mx, int my) {
 void loadModels()
 {
     Texture* texture = new Texture(program, "prev.png", "smooth_normal.png");
-    Model* model = makeStaticCube(1, { 0, 0, -1.5 }, glm::identity<glm::mat4>(), texture);
+    TexturedModel* model = makeStaticCube(1, { 0, 0, -1.5 }, glm::identity<glm::mat4>(), texture);
     models.push_back(model);
     texture = new Texture(program, "brick.png", "brick_normal.png");
     model = makeStaticCube(2, { 3, 0.5, 0 }, glm::identity<glm::mat4>(), texture);
@@ -86,7 +89,7 @@ void loadModels()
         models.push_back(model);
     }
 
-    texture = new Texture(program, "prev.png", "smooth_normal.png");
+    Model* mirror;
     glm::vec3 p1 = { -3.5, -1.5, 1.5 };
     glm::vec3 p3 = { -3.5, 1.5, 1.5 };
     glm::vec3 p2 = { 0.5, -1.5, 3.5 };
@@ -98,8 +101,8 @@ void loadModels()
     vertices[3] = { p1, {0, 0} };
     vertices[4] = { p3, {0, 0} };
     vertices[5] = { p4, {0, 0} };
-    model = new Model(6, vertices, texture);
-    //mirror_faces.push_back(model);
+    mirror = new Model(6, vertices);
+    //mirror_faces.push_back(mirror);
 
     float length2 = 2;
     p1 = { -length2, -length2, 1.5 };
@@ -113,8 +116,36 @@ void loadModels()
     vertices[3] = { p1, {0, 0} };
     vertices[4] = { p3, {0, 0} };
     vertices[5] = { p4, {0, 0} };
-    model = new Model(6, vertices, texture);
-    mirror_faces.push_back(model);
+    mirror = new Model(6, vertices);
+    //mirror_faces.push_back(mirror);
+
+    glm::vec2 triangles[] = {
+        { -0.5, 0.0 }, { 1.5, 4.0 }, { 1.5, 0.0 },
+        { -0.5, 0.0 }, { 1.5, 4.0 }, { -0.5, 4.0 },
+        { -0.5, 0.0 }, { -0.5, 1.0 }, { -3.5, 1.0 },
+        { -0.5, 0.0 }, { -3.5, 0.0 }, { -3.5, 1.0 },
+        { -0.5, 4.0 }, { -0.5, 1.0 }, { -3.5, 1.0 },
+        { -0.5, 4.0 }, { -1.5, 4.0 }, { -1.5, 3.0 },
+        { -2.5, 2.0 }, { -2.5, 4.0 }, { -1.5, 3.0 },
+        { 1.5, 0.0 }, { 2.5, 0.0 }, { 1.5, 1.0 },
+        { 1.5, 2.0 }, { 2.5, 3.0 }, { 1.5, 4.0 },
+        { -1.5, 4.0 }, { -0.5, 5.0 }, { 0.5, 4.0 },
+        { 0.5, 5.0 }, { -0.5, 5.0 }, { 0.5, 4.0 },
+
+        { -3.5, 2.0 }, { -3.5, 3.5 }, { -2.75, 2.75 },
+        { -3.5, 2.0 }, { -3.5, 3.5 }, { -4.25, 2.75 },
+        { 2.5, 1.0 }, { 2.5, 2.0 }, { 3.0, 1.5 },
+        { 2.5, 1.0 }, { 2.5, 2.0 }, { 2.0, 1.5 },
+        { 1.0, 4.5 }, { 2.0, 4.5 }, { 2.0, 5.5 },
+        { 1.0, 4.5 }, { 1.0, 5.5 }, { 2.0, 5.5 },
+    };
+    
+    Plane plane1 = Plane({ 0.0, 0.0, 0.0 }, { 1.0, 0.0, 0.0 }, { 0.0, 1.0, 0.0 });
+    Portal* portal1 = new Portal(plane1, { 0.0, 0.0, 0.0 }, { 0.2, 0.0, 0.0 }, { 0.0, 0.4, 0.0 }, sizeof(triangles) / sizeof(triangles[0]), triangles);
+    Plane plane2 = Plane({ 0.0, 0.0, -1.0 }, { 1.0, 0.0, 0.0 }, { 1.0, 1.0, 0.0 });
+    Portal* portal2 = new Portal(plane2, { -10.0, 0.0, 10.0 }, { 0.2, 0.0, 0.2 }, { 0.0, 0.4, 0.0 }, sizeof(triangles) / sizeof(triangles[0]), triangles);
+    PortalPair *pair = new PortalPair(portal1, portal2);
+    portals.push_back(pair);
 }
 
 void idle()
@@ -147,7 +178,7 @@ void idle()
 
 void renderRegularObjects()
 {
-    for (Model* model : models)
+    for (TexturedModel* model : models)
     {
         model->draw();
     }
@@ -246,6 +277,68 @@ void clearMinZ()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void renderPortalFace(Model* model, glm::mat4x4 proj, glm::mat4x4 rot, glm::vec3 pos)
+{
+    glEnable(GL_STENCIL_TEST);
+
+    // set up stencil
+    glStencilOp(GL_ZERO, GL_ZERO, GL_REPLACE);
+    glStencilFunc(GL_ALWAYS, 1, 1);
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    glDepthMask(GL_FALSE);
+    model->draw();
+    glDepthMask(GL_TRUE);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+    glStencilFunc(GL_EQUAL, 1, 1);
+
+    /*glUseProgram(program_write_min_z);
+    glUniformMatrix4fv(min_z_mvpLoc, 1, GL_FALSE, camera.getMvpLoc());
+    glBindFramebuffer(GL_FRAMEBUFFER, min_z_fbo);
+    glDepthFunc(GL_GREATER);
+    glDisable(GL_ALPHA_TEST);
+    model->draw();
+    glEnable(GL_ALPHA_TEST);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);*/
+
+    clearDepthRespectsStencil(1.0);
+    /*min_zLoc = glGetUniformLocation(program, "min_z");
+    glUniform1i(min_zLoc, min_z_texture);
+    glActiveTexture(GL_TEXTURE0 + min_z_texture);
+    glBindTexture(GL_TEXTURE_2D, min_z_texture);*/
+
+    // render mirrored objects
+    glm::mat4x4 mvp_centered = proj * rot;
+    glm::mat4x4 mv = rot * glm::translate(-pos);
+    Plane plane2 = Plane(mv * glm::vec4(model->vertices[0].position, 1.0),
+        mv * glm::vec4(model->vertices[1].position, 1.0),
+        mv * glm::vec4(model->vertices[2].position, 1.0));
+    glm::mat4x4 mvp = plane2.clipNearPlane(proj) * mv;
+
+    glUniform3fv(cameraLoc, 1, &pos[0]);
+    glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, &mvp[0][0]);
+    renderRegularObjects();
+
+    /*clearMinZ();*/
+
+    // render mirrored skybox
+    skybox.draw(pos, &mvp_centered[0][0]);
+
+    glUseProgram(program);
+    glUniform3fv(cameraLoc, 1, camera.getPosLoc());
+    glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, camera.getMvpLoc());
+    // set correct z-buffer
+    glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+    glStencilFunc(GL_ALWAYS, 0, 1);
+    glDepthFunc(GL_ALWAYS);
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    model->draw();
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glDepthFunc(GL_LEQUAL);
+
+    glDisable(GL_STENCIL_TEST);
+}
+
 void display()
 {
     clearMinZ();
@@ -256,9 +349,6 @@ void display()
     glm::vec3 pos = camera.getPosition();
     glUniform3fv(cameraLoc, 1, &pos[0]);
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, camera.getMvpLoc());
-    glUniform1f(shift_centerLoc, 0.0f);
-    glUniform1f(shift_rightLoc, 0.0f);
-    glUniform1f(shift_topLoc, 0.0f);
 
     if (controller->lantern)
     {
@@ -275,133 +365,30 @@ void display()
 
     renderRegularObjects();
 
-    for (Model* mirror : mirror_faces)
+    for (Model *mirror : mirror_faces)
     {
-        glEnable(GL_STENCIL_TEST);
-
-        // set up stencil
-        glStencilOp(GL_ZERO, GL_ZERO, GL_REPLACE);
-        glStencilFunc(GL_ALWAYS, 1, 1);
-        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-        glDepthMask(GL_FALSE);
-        mirror->draw();
-        glDepthMask(GL_TRUE);
-        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-        glStencilFunc(GL_EQUAL, 1, 1);
-
-        glUseProgram(program_write_min_z);
-        glUniformMatrix4fv(min_z_mvpLoc, 1, GL_FALSE, camera.getMvpLoc());
-        glBindFramebuffer(GL_FRAMEBUFFER, min_z_fbo);
-        glDepthFunc(GL_GREATER);
-        glDisable(GL_ALPHA_TEST);
-        mirror->draw();
-        glEnable(GL_ALPHA_TEST);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        clearDepthRespectsStencil(1.0);
-        min_zLoc = glGetUniformLocation(program, "min_z");
-        glUniform1i(min_zLoc, min_z_texture);
-        glActiveTexture(GL_TEXTURE0 + min_z_texture);
-        glBindTexture(GL_TEXTURE_2D, min_z_texture);
-
-        // render mirrored objects
         Plane plane = Plane(mirror->vertices[0].position, mirror->vertices[1].position, mirror->vertices[2].position);
         glm::vec3 pos_flipped = plane.flip(camera.getPosition());
-        glm::mat4x4 mvp_flipped_centered = camera.flippedMvp_centered(plane);
-        glm::mat4x4 mvp_flipped = mvp_flipped_centered * glm::translate(-pos_flipped);
-        /*glm::vec4 full_normal = plane.getFullNormal();
-        glm::vec4 new_normal = mvp_flipped * glm::vec4(glm::vec3(full_normal), 1.0);
-        glm::vec3 new_normal2 = glm::vec3(new_normal);
-        float new_len = glm::length(new_normal2);
-        glm::mat4x4 oblique = glm::identity<glm::mat4x4>();
-        oblique[2][0] = new_normal2.x / new_normal2.z;
-        oblique[2][1] = new_normal2.y / new_normal2.z;
-        oblique[3][2] = full_normal.w / full_normal.z * new_len;
-        mvp_flipped = oblique * mvp_flipped;*/
+        glm::mat4x4 rot_flipped = plane.flipRotation(camera.getRot());
+        renderPortalFace(mirror, camera.getProj(), rot_flipped, pos_flipped);
+    }
 
-        /*glm::vec4 p1 = mvp_flipped * glm::vec4(mirror->vertices[0].position, 1.0);
-        glm::vec4 p2 = mvp_flipped * glm::vec4(mirror->vertices[1].position, 1.0);
-        glm::vec4 p3 = mvp_flipped * glm::vec4(mirror->vertices[2].position, 1.0);
-        Plane plane2 = Plane(p1, p2, p3);
-        glm::vec4 full_normal = plane2.getFullNormal();
-        if (full_normal.z < 0)
-        {
-            full_normal = -full_normal;
-        }
-        glm::mat4x4 oblique = glm::identity<glm::mat4x4>();
-        oblique[0][2] = full_normal.x / full_normal.z;
-        oblique[1][2] = full_normal.y / full_normal.z;
-        oblique[3][2] = -full_normal.w / full_normal.z;
-        //cout << to_string(mvp_flipped * glm::vec4(0.0, 0.0, 0.0, 1.0)) << to_string(mvp_flipped * glm::vec4(1.0, 0.0, 0.0, 1.0)) << endl;
-        //cout << to_string(full_normal) << endl;
-        //cout << to_string(oblique * glm::vec4(0.0, 0.0, 0.0, 1.0)) << endl;
-        cout << to_string(oblique * glm::vec4(1.0, 0.0, 0.0, 1.0)) << to_string(oblique * glm::vec4(0.0, 1.0, 0.0, 1.0)) << to_string(oblique * glm::vec4(1.0, 1.0, 0.0, 1.0)) << endl;
-        mvp_flipped = oblique * mvp_flipped;*/
-
-        glm::mat4x4 mv = plane.flipRotation(camera.getRot()) * glm::translate(-pos_flipped);
-        //cout << to_string(mv * glm::vec4(0.0, 0.0, 0.0, 1.0)) << endl;
-        Plane plane2 = Plane(mv * glm::vec4(mirror->vertices[0].position, 1.0),
-            mv * glm::vec4(mirror->vertices[1].position, 1.0),
-            mv * glm::vec4(mirror->vertices[2].position, 1.0));
-        //cout << "from " << to_string(camera.getProj()) << endl;
-        mvp_flipped = plane2.clipNearPlane(camera.getProj()) * mv;
-        //cout << "to " << to_string(plane2.clipNearPlane(camera.getProj())) << endl;
-
-        /*glm::mat4x4 mv = plane.flipRotation(camera.getRot()) * glm::translate(-pos_flipped);
-        //cout << to_string(mv * glm::vec4(0.0, 0.0, 0.0, 1.0)) << endl;
-        Plane plane2 = Plane(mv * glm::vec4(mirror->vertices[0].position, 1.0),
-            mv * glm::vec4(mirror->vertices[1].position, 1.0),
-            mv * glm::vec4(mirror->vertices[2].position, 1.0));
-        glm::vec4 full_normal = plane2.getFullNormal();
-        glm::mat4x4 oblique = glm::identity<glm::mat4x4>();
-        oblique[0][2] = full_normal.x / full_normal.z;
-        oblique[1][2] = full_normal.y / full_normal.z;
-        oblique[3][2] = -full_normal.w / full_normal.z;
-        mvp_flipped = camera.getProj() * glm::inverse(oblique) * mv;*/
-
-        /*glm::mat4x4 mvp_inversed = glm::inverse(camera.getMvp());
-        glm::vec4 z_forward = camera.getRot() * glm::vec4(0, 0, -1, 1);
-        glm::vec4 right_point = mvp_inversed * glm::vec4(1, 0, 0, 1);
-        glm::vec4 top_point = mvp_inversed * glm::vec4(0, 1, 0, 1);
-        right_point /= right_point.w;
-        top_point /= top_point.w;
-        //cout << to_string(pos) << to_string(right_point) << to_string(top_point) << endl;
-        glm::vec3 central_intersection = plane.intersection(pos, z_forward);
-        glm::vec3 right_intersection = plane.intersection(glm::vec3(right_point), z_forward);
-        glm::vec3 top_intersection = plane.intersection(glm::vec3(top_point), z_forward);
-        //cout << to_string(pos) << to_string(right_point) << to_string(top_point) << endl;
-        //cout << to_string(mvp_flipped * glm::vec4(central_intersection, 1.0) - camera.getMvp() * glm::vec4(central_intersection, 1.0)) << endl;
-        //cout << to_string(central_intersection) << to_string(right_intersection) << to_string(top_intersection) << endl;
-        glUniform1f(shift_centerLoc, plane.intersection(pos, z_forward).z);
-        glUniform1f(shift_rightLoc, right_intersection.z);
-        glUniform1f(shift_topLoc, top_intersection.z);*/
-        //cout << to_string(mvp_flipped * glm::vec4(pos_flipped, 1.0f)) << " " << to_string(mvp_flipped * glm::vec4(0.0, 0.0, 0.0, 1.0f)) << endl;
-        glUniform3fv(cameraLoc, 1, &pos_flipped[0]);
-        glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, &mvp_flipped[0][0]);
-        renderRegularObjects();
-
-        clearMinZ();
-        glUniform1f(shift_centerLoc, 0.0f);
-        glUniform1f(shift_rightLoc, 0.0f);
-        glUniform1f(shift_topLoc, 0.0f);
-
-        // render mirrored skybox
-        skybox.draw(pos_flipped, &mvp_flipped_centered[0][0]);
-
-        glUseProgram(program);
-        glUniform3fv(cameraLoc, 1, &pos[0]);
-        glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, camera.getMvpLoc());
-        // set correct z-buffer
-        glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
-        glStencilFunc(GL_ALWAYS, 0, 1);
-        glDepthFunc(GL_ALWAYS);
-        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-        mirror->draw();
-        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-        glDepthFunc(GL_LEQUAL);
-
-        glDisable(GL_STENCIL_TEST);
+    glm::mat4x4 camLocalToWorld = glm::translate(camera.getPosition()) * glm::transpose(camera.getRot());
+    glm::mat4x4 camWorldToLocal = camera.getRot() * glm::translate(-camera.getPosition());
+    for (PortalPair* portal : portals)
+    {
+        Portal *portal1 = portal->portal1;
+        Portal *portal2 = portal->portal2;
+        glm::mat4x4 mv1 = camWorldToLocal * portal2->getLocalToWorld() * portal1->getWorldToLocal();
+        glm::vec3 pos1 = glm::vec3(mv1[3]);
+        glm::mat4x4 rot1 = mv1;
+        rot1[3][0] = rot1[3][1] = rot1[3][2] = 0;
+        renderPortalFace(portal1->model, camera.getProj(), rot1, pos1);
+        glm::mat4x4 mv2 = camLocalToWorld * portal1->getLocalToWorld() * portal2->getWorldToLocal();
+        glm::vec3 pos2 = glm::vec3(mv2[3]);
+        glm::mat4x4 rot2 = mv2;
+        rot2[3][0] = rot2[3][1] = rot2[3][2] = 0;
+        renderPortalFace(portal2->model, camera.getProj(), rot2, pos2);
     }
 
     skybox.draw(camera.getPosition(), camera.getMvp_CenteredLoc());
@@ -474,9 +461,6 @@ void initGL()
     glUseProgram(program);
     mvpLoc = glGetUniformLocation(program, "mvp");
     cameraLoc = glGetUniformLocation(program, "camera");
-    shift_centerLoc = glGetUniformLocation(program, "center_shift");
-    shift_rightLoc = glGetUniformLocation(program, "right_shift");
-    shift_topLoc = glGetUniformLocation(program, "top_shift");
 
     glGenBuffers(1, &lightsLoc);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightsLoc);

@@ -5,7 +5,7 @@
 #include <glm/gtx/transform.hpp>
 #include <iostream>
 #include <sstream>
-#include "Model.h"
+#include "TexturedModel.h"
 #include "Plane.h"
 
 using namespace std;
@@ -34,7 +34,7 @@ string to_string(glm::mat4x4 m)
     return ss.str();
 }
 
-Model* makeStaticCube(float length, glm::vec3 pos, glm::mat4x4 rotation, Texture* texture)
+TexturedModel* makeStaticCube(float length, glm::vec3 pos, glm::mat4x4 rotation, Texture* texture)
 {
     float cubeVertices[] = {
         -1.0f,  1.0f, -1.0f,
@@ -95,5 +95,5 @@ Model* makeStaticCube(float length, glm::vec3 pos, glm::mat4x4 rotation, Texture
         vertices[i].position = glm::vec3(rotation * glm::translate(pos) * glm::vec4(vertices[i].position, 1));
     }
 
-	return new Model(count, vertices, texture);
+	return new TexturedModel(count, vertices, texture);
 }
