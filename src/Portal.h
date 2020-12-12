@@ -1,6 +1,7 @@
 #pragma once
 
 #include <GL/glew.h>
+#include <array>
 #include "Model.h"
 
 class Portal
@@ -33,6 +34,13 @@ public:
 			vertices[i] = { point, {0, 0} };
 		}
 		model = new Model(count, vertices);
+	}
+
+	std::array<glm::vec3, 3> getPoints()
+	{
+		//std::array<glm::vec3, 3> plane_vectors = plane.getPosAndBasis();
+		//return { plane_vectors[0], plane_vectors[0] + plane_vectors[1], plane_vectors[0] + plane_vectors[2] };
+		return { model->vertices[0].position, model->vertices[1].position, model->vertices[2].position };
 	}
 
 	//glm::mat4x4 getRotationToWorld()

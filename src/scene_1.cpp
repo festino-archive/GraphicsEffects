@@ -277,7 +277,7 @@ void clearMinZ()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void renderPortalFace(Model* model, glm::mat4x4 proj, glm::mat4x4 rot, glm::vec3 pos)
+void renderPortalFace(Model* model, std::array<glm::vec3, 3> exit_portal_plane, glm::mat4x4 proj, glm::mat4x4 rot, glm::vec3 pos)
 {
     glEnable(GL_STENCIL_TEST);
 
@@ -310,9 +310,9 @@ void renderPortalFace(Model* model, glm::mat4x4 proj, glm::mat4x4 rot, glm::vec3
     // render mirrored objects
     glm::mat4x4 mvp_centered = proj * rot;
     glm::mat4x4 mv = rot * glm::translate(-pos);
-    Plane plane2 = Plane(mv * glm::vec4(model->vertices[0].position, 1.0),
-        mv * glm::vec4(model->vertices[1].position, 1.0),
-        mv * glm::vec4(model->vertices[2].position, 1.0));
+    Plane plane2 = Plane(mv * glm::vec4(exit_portal_plane[0], 1.0),
+        mv * glm::vec4(exit_portal_plane[1], 1.0),
+        mv * glm::vec4(exit_portal_plane[2], 1.0));
     glm::mat4x4 mvp = plane2.clipNearPlane(proj) * mv;
 
     glUniform3fv(cameraLoc, 1, &pos[0]);
@@ -365,12 +365,13 @@ void display()
 
     renderRegularObjects();
 
-    for (Model *mirror : mirror_faces)
+    for (Model* mirror : mirror_faces)
     {
         Plane plane = Plane(mirror->vertices[0].position, mirror->vertices[1].position, mirror->vertices[2].position);
         glm::vec3 pos_flipped = plane.flip(camera.getPosition());
         glm::mat4x4 rot_flipped = plane.flipRotation(camera.getRot());
-        renderPortalFace(mirror, camera.getProj(), rot_flipped, pos_flipped);
+        std::array<glm::vec3, 3> mirror_plane = { mirror->vertices[0].position, mirror->vertices[1].position, mirror->vertices[2].position };
+        renderPortalFace(mirror, mirror_plane, camera.getProj(), rot_flipped, pos_flipped);
     }
 
     glm::mat4x4 camLocalToWorld = glm::translate(camera.getPosition()) * glm::transpose(camera.getRot());
@@ -383,12 +384,12 @@ void display()
         glm::vec3 pos1 = glm::vec3(mv1[3]);
         glm::mat4x4 rot1 = mv1;
         rot1[3][0] = rot1[3][1] = rot1[3][2] = 0;
-        renderPortalFace(portal1->model, camera.getProj(), rot1, pos1);
+        renderPortalFace(portal1->model, portal2->getPoints(), camera.getProj(), rot1, pos1);
         glm::mat4x4 mv2 = camLocalToWorld * portal1->getLocalToWorld() * portal2->getWorldToLocal();
         glm::vec3 pos2 = glm::vec3(mv2[3]);
         glm::mat4x4 rot2 = mv2;
         rot2[3][0] = rot2[3][1] = rot2[3][2] = 0;
-        renderPortalFace(portal2->model, camera.getProj(), rot2, pos2);
+        renderPortalFace(portal2->model, portal1->getPoints(), camera.getProj(), rot2, pos2);
     }
 
     skybox.draw(camera.getPosition(), camera.getMvp_CenteredLoc());

@@ -3,6 +3,7 @@
 #include <glm/vec3.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/mat4x4.hpp>
+#include <array>
 
 class Plane
 {
@@ -55,6 +56,11 @@ public:
         proj[2][2] = c.z - proj[2][3];
         proj[3][2] = c.w - proj[3][3];
         return proj;
+    }
+
+    std::array<glm::vec3, 3> getPosAndBasis()
+    {
+        return { height, a, b };
     }
 
     glm::vec4 getFullNormal()
