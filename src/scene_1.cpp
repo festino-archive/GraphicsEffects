@@ -101,10 +101,11 @@ void loadModels()
     model = new Model(6, vertices, texture);
     //mirror_faces.push_back(model);
 
-    p1 = { -0.5, -0.5, 1.5 };
-    p3 = { -0.5, 0.5, 1.5 };
-    p2 = { 0.5, -0.5, 1.5 };
-    p4 = { 0.5, 0.5, 1.5 };
+    float length2 = 2;
+    p1 = { -length2, -length2, 1.5 };
+    p3 = { -length2, length2, 1.5 };
+    p2 = { length2, -length2, 1.5 };
+    p4 = { length2, length2, 1.5 };
     vertices = new Vertex[6];
     vertices[0] = { p1, {0, 0} };
     vertices[1] = { p2, {0, 0} };
@@ -309,8 +310,58 @@ void display()
         glm::vec3 pos_flipped = plane.flip(camera.getPosition());
         glm::mat4x4 mvp_flipped_centered = camera.flippedMvp_centered(plane);
         glm::mat4x4 mvp_flipped = mvp_flipped_centered * glm::translate(-pos_flipped);
+        /*glm::vec4 full_normal = plane.getFullNormal();
+        glm::vec4 new_normal = mvp_flipped * glm::vec4(glm::vec3(full_normal), 1.0);
+        glm::vec3 new_normal2 = glm::vec3(new_normal);
+        float new_len = glm::length(new_normal2);
+        glm::mat4x4 oblique = glm::identity<glm::mat4x4>();
+        oblique[2][0] = new_normal2.x / new_normal2.z;
+        oblique[2][1] = new_normal2.y / new_normal2.z;
+        oblique[3][2] = full_normal.w / full_normal.z * new_len;
+        mvp_flipped = oblique * mvp_flipped;*/
+
+        /*glm::vec4 p1 = mvp_flipped * glm::vec4(mirror->vertices[0].position, 1.0);
+        glm::vec4 p2 = mvp_flipped * glm::vec4(mirror->vertices[1].position, 1.0);
+        glm::vec4 p3 = mvp_flipped * glm::vec4(mirror->vertices[2].position, 1.0);
+        Plane plane2 = Plane(p1, p2, p3);
+        glm::vec4 full_normal = plane2.getFullNormal();
+        if (full_normal.z < 0)
+        {
+            full_normal = -full_normal;
+        }
+        glm::mat4x4 oblique = glm::identity<glm::mat4x4>();
+        oblique[0][2] = full_normal.x / full_normal.z;
+        oblique[1][2] = full_normal.y / full_normal.z;
+        oblique[3][2] = -full_normal.w / full_normal.z;
+        //cout << to_string(mvp_flipped * glm::vec4(0.0, 0.0, 0.0, 1.0)) << to_string(mvp_flipped * glm::vec4(1.0, 0.0, 0.0, 1.0)) << endl;
+        //cout << to_string(full_normal) << endl;
+        //cout << to_string(oblique * glm::vec4(0.0, 0.0, 0.0, 1.0)) << endl;
+        cout << to_string(oblique * glm::vec4(1.0, 0.0, 0.0, 1.0)) << to_string(oblique * glm::vec4(0.0, 1.0, 0.0, 1.0)) << to_string(oblique * glm::vec4(1.0, 1.0, 0.0, 1.0)) << endl;
+        mvp_flipped = oblique * mvp_flipped;*/
+
+        glm::mat4x4 mv = plane.flipRotation(camera.getRot()) * glm::translate(-pos_flipped);
+        //cout << to_string(mv * glm::vec4(0.0, 0.0, 0.0, 1.0)) << endl;
+        Plane plane2 = Plane(mv * glm::vec4(mirror->vertices[0].position, 1.0),
+            mv * glm::vec4(mirror->vertices[1].position, 1.0),
+            mv * glm::vec4(mirror->vertices[2].position, 1.0));
+        //cout << "from " << to_string(camera.getProj()) << endl;
+        mvp_flipped = plane2.clipNearPlane(camera.getProj()) * mv;
+        //cout << "to " << to_string(plane2.clipNearPlane(camera.getProj())) << endl;
+
+        /*glm::mat4x4 mv = plane.flipRotation(camera.getRot()) * glm::translate(-pos_flipped);
+        //cout << to_string(mv * glm::vec4(0.0, 0.0, 0.0, 1.0)) << endl;
+        Plane plane2 = Plane(mv * glm::vec4(mirror->vertices[0].position, 1.0),
+            mv * glm::vec4(mirror->vertices[1].position, 1.0),
+            mv * glm::vec4(mirror->vertices[2].position, 1.0));
+        glm::vec4 full_normal = plane2.getFullNormal();
+        glm::mat4x4 oblique = glm::identity<glm::mat4x4>();
+        oblique[0][2] = full_normal.x / full_normal.z;
+        oblique[1][2] = full_normal.y / full_normal.z;
+        oblique[3][2] = -full_normal.w / full_normal.z;
+        mvp_flipped = camera.getProj() * glm::inverse(oblique) * mv;*/
+
+        /*glm::mat4x4 mvp_inversed = glm::inverse(camera.getMvp());
         glm::vec4 z_forward = camera.getRot() * glm::vec4(0, 0, -1, 1);
-        glm::mat4x4 mvp_inversed = glm::inverse(camera.getMvp());
         glm::vec4 right_point = mvp_inversed * glm::vec4(1, 0, 0, 1);
         glm::vec4 top_point = mvp_inversed * glm::vec4(0, 1, 0, 1);
         right_point /= right_point.w;
@@ -324,7 +375,7 @@ void display()
         //cout << to_string(central_intersection) << to_string(right_intersection) << to_string(top_intersection) << endl;
         glUniform1f(shift_centerLoc, plane.intersection(pos, z_forward).z);
         glUniform1f(shift_rightLoc, right_intersection.z);
-        glUniform1f(shift_topLoc, top_intersection.z);
+        glUniform1f(shift_topLoc, top_intersection.z);*/
         //cout << to_string(mvp_flipped * glm::vec4(pos_flipped, 1.0f)) << " " << to_string(mvp_flipped * glm::vec4(0.0, 0.0, 0.0, 1.0f)) << endl;
         glUniform3fv(cameraLoc, 1, &pos_flipped[0]);
         glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, &mvp_flipped[0][0]);

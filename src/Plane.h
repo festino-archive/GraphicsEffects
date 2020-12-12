@@ -18,6 +18,7 @@ public:
         a = { p2 - p1 };
         b = { p3 - p1 };
         normal = glm::cross(a, b);
+        normal = glm::normalize(normal);
         float dp = a.x * b.y * normal.z + a.y * b.z * normal.x + a.z * b.x * normal.y;
         float dn = a.z * b.y * normal.x + a.x * b.z * normal.y + a.y * b.x * normal.z;
         d = dp - dn;
@@ -27,6 +28,43 @@ public:
         height = (dz / d) * normal;
         if (glm::dot(p1, height) < 0)
             height = -height;
+    }
+
+    static inline float sgn(float a)
+    {
+        if (a > 0.0F) return (1.0F);
+        if (a < 0.0F) return (-1.0F);
+        return (0.0F);
+    }
+
+    glm::mat4x4 clipNearPlane(glm::mat4x4 proj)
+    {
+        glm::vec4 clipPlane = getFullNormal();
+        if (clipPlane.w > 0)
+            clipPlane = -clipPlane;
+        glm::vec4 q = glm::inverse(proj) * glm::vec4(
+            sgn(clipPlane.x),
+            sgn(clipPlane.y),
+            1.0f,
+            1.0f
+        );
+        glm::vec4 c = clipPlane * (2.0F / (glm::dot(clipPlane, q)));
+        // third row = clip plane - fourth row
+        proj[0][2] = c.x - proj[0][3];
+        proj[1][2] = c.y - proj[1][3];
+        proj[2][2] = c.z - proj[2][3];
+        proj[3][2] = c.w - proj[3][3];
+        return proj;
+    }
+
+    glm::vec4 getFullNormal()
+    {
+        return glm::vec4(normal, -glm::length(height));
+    }
+
+    glm::mat4x4 getReflectionMatrix()
+    {
+        return glm::identity<glm::mat4x4>() - 2.0f * glm::outerProduct(glm::vec4(normal, 0.0f), glm::vec4(normal, 0.0f));
     }
 
     glm::vec3 intersection(glm::vec3 point, glm::vec3 base)

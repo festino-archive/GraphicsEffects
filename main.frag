@@ -60,8 +60,8 @@ void main() {
 	//rgb = normal;
 	//rgb = vec4(vec3( (2.0 * 0.1f) / (50.0f + 0.1f - (gl_FragCoord.z * 2.0 - 1.0) * (50.0f - 0.1f)) ), 1);
 	//rgb = texture(min_z, gl_FragCoord.xy / vec2(1280, 720));
-	float z = (2.0 * 0.1f) / (50.0f + 0.1f - (gl_FragCoord.z * 2.0 - 1.0) * (50.0f - 0.1f));
-	float z_min = (2.0 * 0.1f) / (50.0f + 0.1f - (texture(min_z, gl_FragCoord.xy / vec2(1280, 720)).z * 2.0 - 1.0) * (50.0f - 0.1f));
-	rgb =  vec4(0 + 1f*vec3(z - z_min), 1);
+	//float z = (2.0 * 0.1f) / (50.0f + 0.1f - (gl_FragCoord.z * 2.0 - 1.0) * (50.0f - 0.1f));
+	//float z_min = (2.0 * 0.1f) / (50.0f + 0.1f - (texture(min_z, gl_FragCoord.xy / vec2(1280, 720)).z * 2.0 - 1.0) * (50.0f - 0.1f));
+	//rgb =  vec4(0 + 1f*vec3(z - z_min), 1);
 	color = rgb;
 }
