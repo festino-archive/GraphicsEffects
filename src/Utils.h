@@ -87,7 +87,7 @@ TexturedModel* makeStaticCube(float length, glm::vec3 pos, glm::mat4x4 rotation,
     for (int i = 0; i < count; i++)
     {
         int k = 3 * i;
-        vertices[i] = { { cubeVertices[k], cubeVertices[k + 1], cubeVertices[k + 2] }, { cubeVertices[k] / length + 0.5f, cubeVertices[k + 1] / length + 0.5f } };
+        vertices[i] = { { cubeVertices[k], cubeVertices[k + 1], cubeVertices[k + 2] }, { cubeVertices[k] / 2.0f + 0.5f, cubeVertices[k + 1] / 2.0f + 0.5f } };
     }
 
     Model* model = new Model(count, vertices);

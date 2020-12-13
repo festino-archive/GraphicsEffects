@@ -267,20 +267,26 @@ void renderHUD()
     glPopMatrix();
 }
 
-void clearDepthRespectsStencil(float depth)
+void drawScreenQuad()
 {
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_ALWAYS);
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-    glUseProgram(program_depth_nuller);
-    glUniform1f(nuller_zLoc, depth);
-    
     glBegin(GL_QUADS);
     glVertex2f(-1.0f, -1.0f);
     glVertex2f(1.0f, -1.0f);
     glVertex2f(1.0f, 1.0f);
     glVertex2f(-1.0f, 1.0f);
     glEnd();
+}
+
+void clearDepthRespectsStencil(float depth)
+{
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_ALWAYS);
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    glUseProgram(program_depth_nuller);
+
+    glUniform1f(nuller_zLoc, depth);
+    drawScreenQuad();
+
     glUseProgram(program);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glDepthFunc(GL_LEQUAL);
