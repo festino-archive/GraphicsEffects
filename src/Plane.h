@@ -85,7 +85,7 @@ public:
         return point + base * (dbaze / d);
     }
 
-    glm::vec3 project(glm::vec3 point)
+    glm::vec2 project2D(glm::vec3 point)
     {
         point -= height;
         float dxp = point.x * b.y * normal.z + point.y * b.z * normal.x + point.z * b.x * normal.y;
@@ -94,12 +94,21 @@ public:
         float dyp = a.x * point.y * normal.z + a.y * point.z * normal.x + a.z * point.x * normal.y;
         float dyn = a.z * point.y * normal.x + a.x * point.z * normal.y + a.y * point.x * normal.z;
         float dy = dyp - dyn;
-        /*float dzp = a.x * b.y * point.z + a.y * b.z * point.x + a.z * b.x * point.y;
+        return { dx / d, dy / d };
+    }
+
+    glm::vec3 project(glm::vec3 point)
+    {
+        glm::vec2 project = project2D(point);
+        return height + project.x * a + project.y * b;
+    }
+
+    float getSignedDistance(glm::vec3 point)
+    {
+        float dzp = a.x * b.y * point.z + a.y * b.z * point.x + a.z * b.x * point.y;
         float dzn = a.z * b.y * point.x + a.x * b.z * point.y + a.y * b.x * point.z;
-        float dz = dzp - dzn;*/
-        float k1 = dx / d;
-        float k2 = dy / d;
-        return height + k1 * a + k2 * b;
+        float dz = dzp - dzn;
+        return dz / d;
     }
 
     glm::vec3 flip(glm::vec3 point)

@@ -168,9 +168,25 @@ void idle()
         //cout << "FPS: " << 1 / avg << endl;
 
         // animations
-        controller->moveCamera(avg);
         float angle = full_time / 20;
         movable_light->light_pos = glm::vec4(2 * glm::sin(angle), 1, 2 * glm::cos(angle), 0);
+
+        // physics
+        glm::vec3 prev_pos = camera.getPosition();
+        controller->moveCamera(avg);
+        glm::vec3 cur_pos = camera.getPosition();
+
+        for (PortalPair* portal : portals)
+        {
+            if (camera.isTeleported())
+                break;
+            Portal* portal1 = portal->portal1;
+            Portal* portal2 = portal->portal2;
+            if (portal1->needTeleport(prev_pos, cur_pos))
+                portal->teleportTo2(camera);
+            else if (portal2->needTeleport(prev_pos, cur_pos))
+                portal->teleportTo1(camera);
+        }
     }
     prevFrame = curFrame;
     glutPostRedisplay();

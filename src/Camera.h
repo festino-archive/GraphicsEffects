@@ -13,9 +13,10 @@ class Camera
 private:
 	float yaw;
 	float pitch;
-	glm::mat4x4 proj;
-	glm::mat4x4 rot;
+	bool is_teleported;
 	glm::vec3 pos;
+	glm::mat4x4 rot;
+	glm::mat4x4 proj;
 	glm::mat4x4 mvp_centered;
 	glm::mat4x4 mvp;
 	float hor_sin;
@@ -71,8 +72,20 @@ public:
 		mvp = mvp_centered * glm::translate(-pos);
 	}
 
+	bool isTeleported()
+	{
+		return is_teleported;
+	}
+
 	void teleport(glm::vec3 to)
 	{
+		is_teleported = true;
+		pos = to;
+	}
+
+	void move(glm::vec3 to)
+	{
+		is_teleported = false;
 		pos = to;
 	}
 
@@ -86,12 +99,28 @@ public:
 
 	void move(float cameraX, float cameraY, float cameraZ)
 	{
-		teleport(getRelative(cameraX, cameraY, cameraZ));
+		move(getRelative(cameraX, cameraY, cameraZ));
 	}
 
 	void moveHor(float forward, float right, float up)
 	{
-		teleport(pos + glm::vec3(hor_cos * right - hor_sin * forward, up, hor_cos * forward + hor_sin * right));
+		move(pos + glm::vec3(hor_cos * right - hor_sin * forward, up, hor_cos * forward + hor_sin * right));
+	}
+
+	void setAngle(glm::mat4x4 rot)
+	{
+		float new_yaw = atan2(rot[0][1], rot[0][0]);
+		float new_pitch = atan2(-rot[0][2], sqrt(rot[1][2] * rot[1][2] + rot[2][2] * rot[2][2]));
+		float new_roll = atan2(rot[1][2], rot[2][2]);
+		/* z-y-x
+		float new_yaw = atan2(rot[0][1], rot[0][0]);
+		float new_pitch = atan2(-rot[0][2], sqrt(rot[1][2] * rot[1][2] + rot[2][2] * rot[2][2]));
+		float new_roll = atan2(rot[1][2], rot[2][2]);*/
+		/* z-x-z
+		float new_yaw = atan2(rot[0][2], rot[1][2]);
+		float new_pitch = acos(rot[2][2]);
+		float new_roll = -atan2(rot[2][0], rot[2][1]);*/
+		setAngle(new_yaw, new_pitch);
 	}
 
 	void setAngle(float yaw, float pitch)
