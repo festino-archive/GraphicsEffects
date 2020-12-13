@@ -380,12 +380,14 @@ void display()
     {
         Portal *portal1 = portal->portal1;
         Portal *portal2 = portal->portal2;
-        glm::mat4x4 mv1 = camWorldToLocal * portal2->getLocalToWorld() * portal1->getWorldToLocal();
+        //glm::mat4x4 mv1 = camWorldToLocal * portal1->getLocalToWorld() * portal2->getWorldToLocal();
+        glm::mat4x4 mv1 = portal2->getLocalToWorld() * portal1->getWorldToLocal() * camLocalToWorld;
         glm::vec3 pos1 = glm::vec3(mv1[3]);
         glm::mat4x4 rot1 = mv1;
         rot1[3][0] = rot1[3][1] = rot1[3][2] = 0;
         renderPortalFace(portal1->model, portal2->getPoints(), camera.getProj(), rot1, pos1);
-        glm::mat4x4 mv2 = camLocalToWorld * portal1->getLocalToWorld() * portal2->getWorldToLocal();
+        //glm::mat4x4 mv2 = camLocalToWorld * portal2->getLocalToWorld() * portal1->getWorldToLocal();
+        glm::mat4x4 mv2 = portal1->getLocalToWorld() * portal2->getWorldToLocal() * camLocalToWorld;
         glm::vec3 pos2 = glm::vec3(mv2[3]);
         glm::mat4x4 rot2 = mv2;
         rot2[3][0] = rot2[3][1] = rot2[3][2] = 0;
