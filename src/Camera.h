@@ -13,6 +13,7 @@ class Camera
 private:
 	float yaw;
 	float pitch;
+	float roll;
 	bool is_teleported;
 	glm::vec3 pos;
 	glm::mat4x4 rot;
@@ -134,14 +135,12 @@ public:
 			pitch = glm::half_pi<float>();
 		this->yaw = yaw;
 		this->pitch = pitch;
+		this->roll = 0;
 		hor_sin = sin(yaw);
 		hor_cos = cos(yaw);
-		//printf("pos %f, %f, %f\n", pos.x, pos.y, pos.z);
-		//printf("angles %f, %f\n", yaw, pitch);
 		rot = glm::rotate(pitch, glm::vec3(1, 0, 0));
+		rot = rot * glm::rotate(roll, glm::vec3(0, 0, 1));
 		rot = rot * glm::rotate(yaw, glm::vec3(0, 1, 0));
-		//rot = glm::rotate(yaw, glm::vec3(0, 1, 0));
-		//rot = glm::rotate(pitch, glm::vec3(rot * glm::vec4(1, 0, 0, 1))) * rot;
 	}
 
 	void addAngle(float dYaw, float dPitch)

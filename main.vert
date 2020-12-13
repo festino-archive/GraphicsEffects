@@ -6,6 +6,7 @@ uniform float far = 50.0f;
 uniform mat4 mvp;
 uniform sampler2D min_z;
 
+uniform mat4 modelToWorld;
 layout(location = 0) in vec3 modelPos;
 layout(location = 1) in vec2 tex;
 
@@ -14,7 +15,7 @@ out vec3 toCamera_unnorm;
 out vec2 texCoords;
 
 void main() {
-	vec4 proj = mvp * vec4(modelPos, 1);
+	vec4 proj = mvp * modelToWorld * vec4(modelPos, 1);
 
 	proj.z = proj.z;
 

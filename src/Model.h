@@ -6,15 +6,37 @@
 
 class Model
 {
+    void setScaleNoRecalc(glm::vec3 scale)
+    {
+        this->scale = glm::identity<glm::mat4x4>();
+        this->scale[0][0] = scale[0];
+        this->scale[1][1] = scale[1];
+        this->scale[2][2] = scale[2];
+        updateTransformation();
+    }
+    void updateTransformation()
+    {
+        modelToWorld = glm::translate(shift) * rotation * scale;
+    }
 public:
+    static GLuint modelToWorldLoc;
+
     int vertices_count;
     Vertex* vertices;
 
     GLuint vertexBuffer;
     GLuint vertexArray;
 
+    // from local
+    glm::vec3 shift;
+    glm::mat4x4 rotation;
+    glm::mat4x4 scale;
+    glm::mat4x4 modelToWorld;
+
     Model(int vertices_count, Vertex* vertices)
+        : shift(glm::vec3()), rotation(glm::identity<glm::mat4x4>()), modelToWorld(glm::identity<glm::mat4x4>()), scale(glm::identity<glm::mat4x4>())
     {
+
         this->vertices_count = vertices_count;
         this->vertices = vertices;
 
@@ -30,9 +52,50 @@ public:
         glEnableVertexAttribArray(1);
     }
 
+    void setShift(glm::vec3 shift)
+    {
+        this->shift = shift;
+        updateTransformation();
+    }
+
+    void setRotation(glm::mat4x4 &rotation)
+    {
+        this->rotation = rotation;
+        updateTransformation();
+    }
+
+    void setScale(glm::vec3 scale)
+    {
+        setScaleNoRecalc(scale);
+        updateTransformation();
+    }
+
+    void setTransform(glm::vec3 shift, glm::mat4x4 rotation)
+    {
+        this->shift = shift;
+        this->rotation = rotation;
+        updateTransformation();
+    }
+
+    void setTransform(glm::vec3 shift, glm::mat4x4 rotation, glm::vec3 scale)
+    {
+        this->shift = shift;
+        this->rotation = rotation;
+        setScaleNoRecalc(scale);
+        updateTransformation();
+    }
+
+    glm::mat4x4 getTransform()
+    {
+        return modelToWorld;
+    }
+
     void draw()
     {
+        glUniformMatrix4fv(modelToWorldLoc, 1, GL_FALSE, &modelToWorld[0][0]);
         glBindVertexArray(vertexArray);
         glDrawArrays(GL_TRIANGLES, 0, vertices_count);
     }
 };
+
+GLuint Model::modelToWorldLoc;

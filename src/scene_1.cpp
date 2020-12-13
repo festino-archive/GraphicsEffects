@@ -478,6 +478,7 @@ void initGL()
     glUseProgram(program);
     mvpLoc = glGetUniformLocation(program, "mvp");
     cameraLoc = glGetUniformLocation(program, "camera");
+    Model::modelToWorldLoc = glGetUniformLocation(program, "modelToWorld");
 
     glGenBuffers(1, &lightsLoc);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightsLoc);
