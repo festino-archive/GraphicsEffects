@@ -186,17 +186,16 @@
   <ItemGroup>
     <None Include="2d.frag" />
     <None Include="2d.vert" />
+    <None Include="fog.vert" />
     <None Include="NBlinnFragment.glsl" />
     <None Include="NBlinnVertex.glsl" />
     <None Include="nuller.frag" />
     <None Include="nuller.vert" />
-    <None Include="raymarcher.frag" />
+    <None Include="fog.frag" />
     <None Include="main.frag" />
     <None Include="main.vert" />
     <None Include="skybox.frag" />
     <None Include="skybox.vert" />
-    <None Include="write_depth.frag" />
-    <None Include="write_depth.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

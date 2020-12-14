@@ -30,6 +30,14 @@ private:
 		proj = glm::perspectiveRH(fov, win_width / win_height, near_dist, far_dist);
 	}
 public:
+	float getNear()
+	{
+		return near_dist;
+	}
+	float getFar()
+	{
+		return far_dist;
+	}
 	glm::mat4x4 getProj()
 	{
 		return proj;
@@ -45,10 +53,6 @@ public:
 	glm::mat4x4 getMvp_Centered()
 	{
 		return mvp_centered;
-	}
-	glm::mat4x4 flippedMvp_centered(Plane& plane)
-	{
-		return proj * plane.flipRotation(rot);
 	}
 	float* getMvp_CenteredLoc()
 	{

@@ -1,6 +1,5 @@
 #version 430 core
 
-in vec3 screenPos;
 out vec4 color;
 
 void main() {

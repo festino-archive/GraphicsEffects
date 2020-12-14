@@ -27,8 +27,6 @@ in vec3 toCamera_unnorm;
 in vec2 texCoords;
 out vec4 color;
 
-uniform sampler2D min_z;
-
 void main() {
 	vec4 normal_unnorm = texture2D(normalMap, texCoords);
 	normal_unnorm = (normal_unnorm - vec4(0.5, 0.5, 0.5, 0)) * 2.0;

@@ -21,17 +21,21 @@ using namespace std;
 
 int win_width = 1280;
 int win_height = 720;
-GLuint program;
+
 GLuint program_depth_nuller;
 GLuint nuller_zLoc;
+
+GLuint program_fog;
+GLuint fog_mvp_inversedLoc, fog_camera_posLoc, fog_depth_mapLoc;
+
 GLuint program_2d;
-GLuint program_write_min_z;
+
+GLuint program;
 GLuint color_maskLoc, white_textureLoc, white_textureID, linearFiltering;
 
 GLuint mvpLoc, cameraLoc;
 GLuint lightsLoc;
 
-GLuint min_z_fbo, min_z_texture, min_zLoc, min_z_mvpLoc;
 
 Skybox skybox;
 vector<Omnilight*> lights = vector<Omnilight*>();
@@ -43,7 +47,7 @@ vector<PortalPair*> portals = vector<PortalPair*>();
 Camera camera = Camera(0, 0, glm::vec3(), 0, 0);
 float init_yaw = 0, init_pitch = 0;
 glm::vec3 init_pos = glm::vec3(0, 0, 4);
-float fov = 45.0f, near_dist = 0.1f, far_dist = 50.0f;
+float fov = 45.0f, near_dist = 0.1f, far_dist = 100.0f;
 
 constexpr float MICROSEC = 1.0f / 1000000;
 constexpr int TIMES_COUNT = 10;
@@ -143,7 +147,7 @@ void loadModels()
     Plane plane1 = Plane({ 0.0, 0.0, 0.0 }, { 1.0, 0.0, 0.0 }, { 0.0, 1.0, 0.0 });
     Portal* portal1 = new Portal(plane1, { 0.0, 0.0, 0.0 }, { 0.2, 0.0, 0.0 }, { 0.0, 0.4, 0.0 }, sizeof(triangles) / sizeof(triangles[0]), triangles);
     Plane plane2 = Plane({ 0.0, 0.0, -1.0 }, { 1.0, 0.0, 0.0 }, { 1.0, 1.0, 0.0 });
-    Portal* portal2 = new Portal(plane2, { -10.0, 0.0, 10.0 }, { 0.2, 0.0, 0.2 }, { 0.0, 0.4, 0.0 }, sizeof(triangles) / sizeof(triangles[0]), triangles);
+    Portal* portal2 = new Portal(plane2, { -50.0, 0.0, 50.0 }, { 0.2, 0.0, 0.2 }, { 0.0, 0.4, 0.0 }, sizeof(triangles) / sizeof(triangles[0]), triangles);
     PortalPair *pair = new PortalPair(portal1, portal2);
     portals.push_back(pair);
 }
@@ -168,7 +172,7 @@ void idle()
         //cout << "FPS: " << 1 / avg << endl;
 
         // animations
-        float angle = full_time / 20;
+        float angle = full_time / 10;
         movable_light->light_pos = glm::vec4(2 * glm::sin(angle), 1, 2 * glm::cos(angle), 0);
 
         // physics
@@ -275,6 +279,14 @@ void drawScreenQuad()
     glVertex2f(1.0f, 1.0f);
     glVertex2f(-1.0f, 1.0f);
     glEnd();
+    /*glBegin(GL_TRIANGLES);
+    glVertex2f(-1.0f, -1.0f);
+    glVertex2f(1.0f, -1.0f);
+    glVertex2f(1.0f, 1.0f);
+    glVertex2f(-1.0f, -1.0f);
+    glVertex2f(-1.0f, 1.0f);
+    glVertex2f(1.0f, 1.0f);
+    glEnd();*/
 }
 
 void clearDepthRespectsStencil(float depth)
@@ -292,11 +304,45 @@ void clearDepthRespectsStencil(float depth)
     glDepthFunc(GL_LEQUAL);
 }
 
-void clearMinZ()
+void renderFog(glm::vec3 cam_pos, glm::mat4x4 mvp)
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, min_z_fbo);
-    clearDepthRespectsStencil(0.0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDepthFunc(GL_ALWAYS);
+    glDepthMask(GL_FALSE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glUseProgram(program_fog);
+    GLuint z_near = glGetUniformLocation(program_fog, "near");
+    GLuint z_far = glGetUniformLocation(program_fog, "far");
+    glUniform1f(z_near, camera.getNear());
+    glUniform1f(z_far, camera.getFar());
+    fog_depth_mapLoc = glGetUniformLocation(program_fog, "depth_map");
+
+    GLuint depth_map_texture;
+    glGenTextures(1, &depth_map_texture);
+    glBindTexture(GL_TEXTURE_2D, depth_map_texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, win_width, win_height, 0, GL_DEPTH_COMPONENT24, GL_UNSIGNED_BYTE, 0);
+    glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, 0, 0, win_width, win_height, 0);
+
+    glUniform1i(fog_depth_mapLoc, depth_map_texture);
+    glActiveTexture(GL_TEXTURE0 + depth_map_texture);
+    glBindTexture(GL_TEXTURE_2D, depth_map_texture);
+    glUniform3fv(fog_camera_posLoc, 1, &cam_pos[0]);
+    glm::mat4x4 mvp_inversed = glm::inverse(mvp);
+    glUniformMatrix4fv(fog_mvp_inversedLoc, 1, GL_FALSE, &mvp_inversed[0][0]);
+
+    drawScreenQuad();
+
+    glDeleteTextures(1, &depth_map_texture);
+
+    glBlendFunc(GL_ONE, GL_ZERO);
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LEQUAL);
 }
 
 void renderPortalFace(Model* model, std::array<glm::vec3, 3> exit_portal_plane, glm::mat4x4 proj, glm::mat4x4 rot, glm::vec3 pos)
@@ -314,20 +360,7 @@ void renderPortalFace(Model* model, std::array<glm::vec3, 3> exit_portal_plane, 
     glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
     glStencilFunc(GL_EQUAL, 1, 1);
 
-    /*glUseProgram(program_write_min_z);
-    glUniformMatrix4fv(min_z_mvpLoc, 1, GL_FALSE, camera.getMvpLoc());
-    glBindFramebuffer(GL_FRAMEBUFFER, min_z_fbo);
-    glDepthFunc(GL_GREATER);
-    glDisable(GL_ALPHA_TEST);
-    model->draw();
-    glEnable(GL_ALPHA_TEST);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);*/
-
     clearDepthRespectsStencil(1.0);
-    /*min_zLoc = glGetUniformLocation(program, "min_z");
-    glUniform1i(min_zLoc, min_z_texture);
-    glActiveTexture(GL_TEXTURE0 + min_z_texture);
-    glBindTexture(GL_TEXTURE_2D, min_z_texture);*/
 
     // render mirrored objects
     glm::mat4x4 mvp_centered = proj * rot;
@@ -341,10 +374,10 @@ void renderPortalFace(Model* model, std::array<glm::vec3, 3> exit_portal_plane, 
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, &mvp[0][0]);
     renderRegularObjects();
 
-    /*clearMinZ();*/
-
     // render mirrored skybox
     skybox.draw(pos, &mvp_centered[0][0]);
+
+    //renderFog(pos, mvp);
 
     glUseProgram(program);
     glUniform3fv(cameraLoc, 1, camera.getPosLoc());
@@ -363,7 +396,6 @@ void renderPortalFace(Model* model, std::array<glm::vec3, 3> exit_portal_plane, 
 
 void display()
 {
-    clearMinZ();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     camera.updateMvp();
@@ -416,6 +448,8 @@ void display()
 
     skybox.draw(camera.getPosition(), camera.getMvp_CenteredLoc());
 
+    renderFog(pos, camera.getMvp());
+
     if (controller->flag_info)
     {
         renderHUD();
@@ -441,28 +475,6 @@ void initCamera()
     camera.setProjParams(fov, near_dist, far_dist);
 }
 
-void initFBO()
-{
-    FileUtils::loadShaders(program_write_min_z, "write_depth.vert", "write_depth.frag");
-    min_z_mvpLoc = glGetUniformLocation(program_write_min_z, "mvp");
-    glGenFramebuffers(1, &min_z_fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, min_z_fbo);
-    glGenTextures(1, &min_z_texture);
-    glBindTexture(GL_TEXTURE_2D, min_z_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, win_width, win_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0); // update size
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_GEQUAL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, min_z_texture, 0);
-    //glDrawBuffers(1, DrawBuffers);
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "Min z framebuffer error" << std::endl;
-
-    min_zLoc = glGetUniformLocation(program, "min_z");
-    glUniform1i(min_zLoc, min_z_texture);
-}
-
 void initGL()
 {
     skybox = Skybox();
@@ -471,6 +483,11 @@ void initGL()
     FileUtils::loadShaders(program_depth_nuller, "nuller.vert", "nuller.frag");
     nuller_zLoc = glGetUniformLocation(program_depth_nuller, "z");
 
+    FileUtils::loadShaders(program_fog, "fog.vert", "fog.frag");
+    fog_mvp_inversedLoc = glGetUniformLocation(program_fog, "mvp_inversed"); 
+    fog_camera_posLoc = glGetUniformLocation(program_fog, "camera_pos");
+    fog_depth_mapLoc = glGetUniformLocation(program_fog, "depth_map");
+    
     FileUtils::loadShaders(program_2d, "2d.vert", "2d.frag");
     glUseProgram(program_2d);
     white_textureLoc = glGetUniformLocation(program_2d, "guiTexture");
@@ -495,7 +512,6 @@ void initGL()
     movable_light = new Omnilight { {0, 1, 2, 0}, {0.9, 0, 0, 0}, {0.9, 0, 0, 0}, 0.7, 0.2 };
     lights.push_back(movable_light);
 
-    initFBO();
     loadModels();
 
     glClearColor(0.0, 0.0, 0.0, 0.0);

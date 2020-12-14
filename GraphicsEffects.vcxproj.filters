@@ -121,9 +121,6 @@
     <None Include="nuller.vert">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="raymarcher.frag">
-      <Filter>Source Files\shaders</Filter>
-    </None>
     <None Include="skybox.frag">
       <Filter>Source Files\shaders</Filter>
     </None>
@@ -136,10 +133,10 @@
     <None Include="main.vert">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="write_depth.frag">
+    <None Include="fog.frag">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="write_depth.vert">
+    <None Include="fog.vert">
       <Filter>Source Files\shaders</Filter>
     </None>
   </ItemGroup>
