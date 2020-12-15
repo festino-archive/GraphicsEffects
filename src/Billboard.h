@@ -79,8 +79,6 @@ public:
 
 	void draw()
 	{
-		//std::cout << z << std::endl;
-
 		if (z > 0 && z < 1)
 		{
 			glUniform1f(alphaLoc, alpha);
@@ -97,12 +95,6 @@ public:
 			glBindTexture(GL_TEXTURE_2D, textureID);
 			glBindVertexArray(vertexArray);
 			glDrawArrays(GL_QUADS, 0, 4);
-			/*glBegin(GL_QUADS);
-			glVertex3f(-half_width, -half_height, z);
-			glVertex3f(half_width, -half_height, z);
-			glVertex3f(half_width, half_height, z);
-			glVertex3f(-half_width, half_height, z);
-			glEnd();*/
 		}
 	}
 };
