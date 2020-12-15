@@ -13,6 +13,7 @@
 #include "Skybox.h"
 #include "Utils.h"
 #include "Omnilight.h"
+#include "Billboard.h"
 #include "Model.h"
 #include "TexturedModel.h"
 #include "PortalPair.h"
@@ -29,12 +30,12 @@ GLuint program_fog;
 GLuint fog_mvp_inversedLoc, fog_camera_posLoc, fog_depth_mapLoc;
 
 GLuint program_2d;
-
-GLuint program;
 GLuint color_maskLoc, white_textureLoc, white_textureID, linearFiltering;
 
-GLuint mvpLoc, cameraLoc;
-GLuint lightsLoc;
+GLuint program_billboard;
+
+GLuint program;
+GLuint mvpLoc, cameraLoc, lightsLoc;
 
 
 Skybox skybox;
@@ -43,6 +44,7 @@ Omnilight* movable_light;
 vector<TexturedModel*> models = vector<TexturedModel*>();
 vector<Model*> mirror_faces = vector<Model*>();
 vector<PortalPair*> portals = vector<PortalPair*>();
+vector<Billboard*> billboards = vector<Billboard*>();
 
 Camera camera = Camera(0, 0, glm::vec3(), 0, 0);
 float init_yaw = 0, init_pitch = 0;
@@ -196,12 +198,37 @@ void idle()
     glutPostRedisplay();
 }
 
-void renderRegularObjects()
+void drawScreenQuad()
 {
-    for (TexturedModel* model : models)
-    {
-        model->draw();
-    }
+    glBegin(GL_QUADS);
+    glVertex2f(-1.0f, -1.0f);
+    glVertex2f(1.0f, -1.0f);
+    glVertex2f(1.0f, 1.0f);
+    glVertex2f(-1.0f, 1.0f);
+    glEnd();
+    /*glBegin(GL_TRIANGLES);
+    glVertex2f(-1.0f, -1.0f);
+    glVertex2f(1.0f, -1.0f);
+    glVertex2f(1.0f, 1.0f);
+    glVertex2f(-1.0f, -1.0f);
+    glVertex2f(-1.0f, 1.0f);
+    glVertex2f(1.0f, 1.0f);
+    glEnd();*/
+}
+
+void clearDepthRespectsStencil(float depth)
+{
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_ALWAYS);
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    glUseProgram(program_depth_nuller);
+
+    glUniform1f(nuller_zLoc, depth);
+    drawScreenQuad();
+
+    glUseProgram(program);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glDepthFunc(GL_LEQUAL);
 }
 
 void renderHUD()
@@ -271,37 +298,34 @@ void renderHUD()
     glPopMatrix();
 }
 
-void drawScreenQuad()
+void renderRegularObjects()
 {
-    glBegin(GL_QUADS);
-    glVertex2f(-1.0f, -1.0f);
-    glVertex2f(1.0f, -1.0f);
-    glVertex2f(1.0f, 1.0f);
-    glVertex2f(-1.0f, 1.0f);
-    glEnd();
-    /*glBegin(GL_TRIANGLES);
-    glVertex2f(-1.0f, -1.0f);
-    glVertex2f(1.0f, -1.0f);
-    glVertex2f(1.0f, 1.0f);
-    glVertex2f(-1.0f, -1.0f);
-    glVertex2f(-1.0f, 1.0f);
-    glVertex2f(1.0f, 1.0f);
-    glEnd();*/
+    for (TexturedModel* model : models)
+    {
+        model->draw();
+    }
 }
 
-void clearDepthRespectsStencil(float depth)
+bool comp_Billboard(Billboard* a, Billboard* b) {
+    return a->getZ() > b->getZ();
+}
+void renderBillboards(glm::mat4x4 mvp, glm::mat4x4 mv)
 {
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_ALWAYS);
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-    glUseProgram(program_depth_nuller);
+    glUseProgram(program_billboard);
+    for (Billboard* billboard : billboards)
+    {
+        billboard->calcZ(mvp, mv);
+    }
+    sort(billboards.begin(), billboards.end(), comp_Billboard);
 
-    glUniform1f(nuller_zLoc, depth);
-    drawScreenQuad();
-
-    glUseProgram(program);
-    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    glDepthFunc(GL_LEQUAL);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    for (Billboard* billboard : billboards)
+    {
+        billboard->draw();
+    }
+    glBlendFunc(GL_ONE, GL_ZERO);
+    glDisable(GL_BLEND);
 }
 
 void renderFog(glm::vec3 cam_pos, glm::mat4x4 mvp)
@@ -378,6 +402,7 @@ void renderPortalFace(Model* model, std::array<glm::vec3, 3> exit_portal_plane, 
     skybox.draw(pos, &mvp_centered[0][0]);
 
     //renderFog(pos, mvp);
+    renderBillboards(mvp, mv);
 
     glUseProgram(program);
     glUniform3fv(cameraLoc, 1, camera.getPosLoc());
@@ -449,6 +474,7 @@ void display()
     skybox.draw(camera.getPosition(), camera.getMvp_CenteredLoc());
 
     renderFog(pos, camera.getMvp());
+    renderBillboards(camera.getMvp(), camera.getRot() * camera.getTranslation());
 
     if (controller->flag_info)
     {
@@ -463,6 +489,7 @@ void reshape(int width, int height)
     win_width = width;
     win_height = height;
     camera.updateProjSize(win_width, win_height);
+    Billboard::setAspectRatio(win_width / (float)win_height);
     glViewport(0, 0, win_width, win_height);
     times.clear();
     times_index = 0;
@@ -487,7 +514,19 @@ void initGL()
     fog_mvp_inversedLoc = glGetUniformLocation(program_fog, "mvp_inversed"); 
     fog_camera_posLoc = glGetUniformLocation(program_fog, "camera_pos");
     fog_depth_mapLoc = glGetUniformLocation(program_fog, "depth_map");
-    
+
+    FileUtils::loadShaders(program_billboard, "billboard.vert", "billboard.frag");
+    Billboard::setUniformLocations(program_billboard);
+    GLuint billboard_textureID;
+    FileUtils::loadTextures(billboard_textureID, "billboard1.png");
+    billboards.push_back(new Billboard(billboard_textureID, { 10, 1, -10 }, { 0, 0 }, { 1, 79.0f / 588 }));
+    billboards.push_back(new Billboard(billboard_textureID, { 11, 1, -10 }, { 0, 0 }, { 1, 79.0f / 588 }));
+    billboards.push_back(new Billboard(billboard_textureID, { 12, 1, -10 }, { 0, 0 }, { 1, 79.0f / 588 }));
+    FileUtils::loadTextures(billboard_textureID, "billboard2.png");
+    Billboard* quest = new Billboard(billboard_textureID, { 10, 1, -8 }, { 0, 2 }, { 218.0f / 799 / 2, 0.5 });
+    quest->setAlpha(1.0);
+    billboards.push_back(quest);
+
     FileUtils::loadShaders(program_2d, "2d.vert", "2d.frag");
     glUseProgram(program_2d);
     white_textureLoc = glGetUniformLocation(program_2d, "guiTexture");

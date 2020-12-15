@@ -18,6 +18,7 @@ private:
 	glm::vec3 pos;
 	glm::mat4x4 rot;
 	glm::mat4x4 proj;
+	glm::mat4x4 translation;
 	glm::mat4x4 mvp_centered;
 	glm::mat4x4 mvp;
 	float hor_sin;
@@ -28,6 +29,11 @@ private:
 	void updateProj()
 	{
 		proj = glm::perspectiveRH(fov, win_width / win_height, near_dist, far_dist);
+	}
+	void setPos(glm::vec3 to)
+	{
+		pos = to;
+		translation = glm::translate(-pos);
 	}
 public:
 	float getNear()
@@ -70,11 +76,15 @@ public:
 	{
 		return pos;
 	}
+	glm::mat4x4 getTranslation()
+	{
+		return translation;
+	}
 
 	void updateMvp()
 	{
 		mvp_centered = proj * rot;
-		mvp = mvp_centered * glm::translate(-pos);
+		mvp = mvp_centered * translation;
 	}
 
 	bool isTeleported()
@@ -85,13 +95,13 @@ public:
 	void teleport(glm::vec3 to)
 	{
 		is_teleported = true;
-		pos = to;
+		setPos(to);
 	}
 
 	void move(glm::vec3 to)
 	{
 		is_teleported = false;
-		pos = to;
+		setPos(to);
 	}
 
 	glm::vec3 getRelative(float cameraX, float cameraY, float cameraZ)

@@ -101,6 +101,9 @@
     <ClInclude Include="src\Model.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Billboard.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="NBlinnVertex.glsl">
@@ -137,6 +140,12 @@
       <Filter>Source Files\shaders</Filter>
     </None>
     <None Include="fog.vert">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="billboard.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="billboard.vert">
       <Filter>Source Files\shaders</Filter>
     </None>
   </ItemGroup>

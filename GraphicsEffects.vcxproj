@@ -161,6 +161,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="example_6.h" />
+    <ClInclude Include="src\Billboard.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\controls.h" />
     <ClInclude Include="src\Examples\example_1.h" />
@@ -186,6 +187,8 @@
   <ItemGroup>
     <None Include="2d.frag" />
     <None Include="2d.vert" />
+    <None Include="billboard.frag" />
+    <None Include="billboard.vert" />
     <None Include="fog.vert" />
     <None Include="NBlinnFragment.glsl" />
     <None Include="NBlinnVertex.glsl" />
