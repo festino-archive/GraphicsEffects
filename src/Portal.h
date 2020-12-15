@@ -32,7 +32,7 @@ public:
 		for (int i = 0; i < count; i++)
 		{
 			glm::vec3 point = center + x_proj * triangle_shape[i].x + y_proj * triangle_shape[i].y;
-			glm::vec2 proj = plane.project2D(point);
+			glm::vec2 proj = plane.project2D(point - center);
 			if (i == 0) {
 				min_plane_point = proj;
 				max_plane_point = proj;

@@ -40,11 +40,14 @@ GLuint mvpLoc, cameraLoc, lightsLoc;
 
 Skybox skybox;
 vector<Omnilight*> lights = vector<Omnilight*>();
-Omnilight* movable_light;
 vector<TexturedModel*> models = vector<TexturedModel*>();
 vector<Model*> mirror_faces = vector<Model*>();
 vector<PortalPair*> portals = vector<PortalPair*>();
 vector<Billboard*> billboards = vector<Billboard*>();
+Omnilight *movable_light;
+TexturedModel* player_model;
+Model *mirror_cube[6];
+TexturedModel *rotating_1, *rotating_2, *rotating_framed, *jumping_1, *oscillating_1, *oscillating_2;
 
 Camera camera = Camera(0, 0, glm::vec3(), 0, 0);
 float init_yaw = 0, init_pitch = 0;
@@ -77,20 +80,39 @@ void mouseMove(int mx, int my) {
     controller->mouseMove(mx, my);
 }
 
+void moveModels(float full_time, float delta_time)
+{
+
+}
+
+void loadMovingModels()
+{
+    Texture* smooth_texture = new Texture(program, "white.png", "smooth_normal.png");
+    rotating_1 = makeCube(1, { 10, 0, -1.5 }, glm::identity<glm::mat4>(), smooth_texture);
+    rotating_2 = makeCube(1, { 0, 0, -1.5 }, glm::identity<glm::mat4>(), smooth_texture);
+    //rotating_frame
+    Texture* point_texture = new Texture(program, "point.png", "smooth_normal.png");
+    rotating_framed = makeCube(1, { 0, 0, -1.5 }, glm::identity<glm::mat4>(), smooth_texture);
+    jumping_1 = makeCube(1, { 0, 0, -1.5 }, glm::identity<glm::mat4>(), smooth_texture);
+    oscillating_1 = makeCube(1, { 0, 0, -1.5 }, glm::identity<glm::mat4>(), smooth_texture);
+    oscillating_2 = makeCube(1, { 0, 0, -1.5 }, glm::identity<glm::mat4>(), smooth_texture);
+    //mirror_cube
+}
+
 void loadModels()
 {
     Texture* texture = new Texture(program, "prev.png", "smooth_normal.png");
-    TexturedModel* model = makeStaticCube(1, { 0, 0, -1.5 }, glm::identity<glm::mat4>(), texture);
+    TexturedModel* model = makeCube(1, { 0, 0, -1.5 }, glm::identity<glm::mat4>(), texture);
     models.push_back(model);
     texture = new Texture(program, "brick.png", "brick_normal.png");
-    model = makeStaticCube(2, { 3, 0.5, 0 }, glm::identity<glm::mat4>(), texture);
+    model = makeCube(2, { 3, 0.5, 0 }, glm::identity<glm::mat4>(), texture);
     models.push_back(model);
 
     float size = 1;
     float offset = -3.5;
     for (int i = 0; i < 10; i++) {
         size *= 0.9;
-        model = makeStaticCube(size, { 0, 0, offset }, glm::identity<glm::mat4>(), texture);
+        model = makeCube(size, { 0, 0, offset }, glm::identity<glm::mat4>(), texture);
         offset -= 1 + size;
         models.push_back(model);
     }
@@ -147,11 +169,13 @@ void loadModels()
     };
     
     Plane plane1 = Plane({ 0.0, 0.0, 0.0 }, { 1.0, 0.0, 0.0 }, { 0.0, 1.0, 0.0 });
-    Portal* portal1 = new Portal(plane1, { 0.0, 0.0, 0.0 }, { 0.2, 0.0, 0.0 }, { 0.0, 0.4, 0.0 }, sizeof(triangles) / sizeof(triangles[0]), triangles);
+    Portal* portal1 = new Portal(plane1, { -5.0, -0.5, -5.0 }, { 0.2, 0.0, 0.0 }, { 0.0, 0.4, 0.0 }, sizeof(triangles) / sizeof(triangles[0]), triangles);
     Plane plane2 = Plane({ 0.0, 0.0, -1.0 }, { 1.0, 0.0, 0.0 }, { 1.0, 1.0, 0.0 });
     Portal* portal2 = new Portal(plane2, { -50.0, 0.0, 50.0 }, { 0.2, 0.0, 0.2 }, { 0.0, 0.4, 0.0 }, sizeof(triangles) / sizeof(triangles[0]), triangles);
     PortalPair *pair = new PortalPair(portal1, portal2);
     portals.push_back(pair);
+
+    loadMovingModels();
 }
 
 void idle()
@@ -519,11 +543,11 @@ void initGL()
     Billboard::setUniformLocations(program_billboard);
     GLuint billboard_textureID;
     FileUtils::loadTextures(billboard_textureID, "billboard1.png");
-    billboards.push_back(new Billboard(billboard_textureID, { 10, 1, -10 }, { 0, 0 }, { 1, 79.0f / 588 }));
-    billboards.push_back(new Billboard(billboard_textureID, { 11, 1, -10 }, { 0, 0 }, { 1, 79.0f / 588 }));
-    billboards.push_back(new Billboard(billboard_textureID, { 12, 1, -10 }, { 0, 0 }, { 1, 79.0f / 588 }));
+    billboards.push_back(new Billboard(billboard_textureID, { 5, 1, 9 }, { 0, 0 }, { 1, 79.0f / 588 }));
+    billboards.push_back(new Billboard(billboard_textureID, { 7, 1, 9 }, { 0, 0 }, { 1, 79.0f / 588 }));
+    billboards.push_back(new Billboard(billboard_textureID, { 6, 1, 9 }, { 0, 0 }, { 1, 79.0f / 588 }));
     FileUtils::loadTextures(billboard_textureID, "billboard2.png");
-    Billboard* quest = new Billboard(billboard_textureID, { 10, 1, -8 }, { 0, 2 }, { 218.0f / 799 / 2, 0.5 });
+    Billboard* quest = new Billboard(billboard_textureID, { 5, 1, 6 }, { 0, 2 }, { 218.0f / 799 / 2, 0.5 });
     quest->setAlpha(1.0);
     billboards.push_back(quest);
 

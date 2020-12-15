@@ -34,60 +34,65 @@ string to_string(glm::mat4x4 m)
     return ss.str();
 }
 
-TexturedModel* makeStaticCube(float length, glm::vec3 pos, glm::mat4x4 rotation, Texture* texture)
+TexturedModel* makeCube(float length, glm::vec3 pos, glm::mat4x4 rotation, Texture* texture)
 {
     float cubeVertices[] = {
-        -1.0f,  1.0f, -1.0f,
-        -1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
-         1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
-
+        // -x
         -1.0f, -1.0f,  1.0f,
         -1.0f, -1.0f, -1.0f,
         -1.0f,  1.0f, -1.0f,
         -1.0f,  1.0f, -1.0f,
         -1.0f,  1.0f,  1.0f,
         -1.0f, -1.0f,  1.0f,
-
+        // +x
          1.0f, -1.0f, -1.0f,
          1.0f, -1.0f,  1.0f,
          1.0f,  1.0f,  1.0f,
          1.0f,  1.0f,  1.0f,
          1.0f,  1.0f, -1.0f,
          1.0f, -1.0f, -1.0f,
-
-        -1.0f, -1.0f,  1.0f,
-        -1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f, -1.0f,  1.0f,
-        -1.0f, -1.0f,  1.0f,
-
+         // +y
         -1.0f,  1.0f, -1.0f,
          1.0f,  1.0f, -1.0f,
          1.0f,  1.0f,  1.0f,
          1.0f,  1.0f,  1.0f,
         -1.0f,  1.0f,  1.0f,
         -1.0f,  1.0f, -1.0f,
-
+         // -y
+         1.0f, -1.0f, -1.0f,
+         1.0f, -1.0f,  1.0f,
+        -1.0f, -1.0f,  1.0f,
+        -1.0f, -1.0f,  1.0f,
         -1.0f, -1.0f, -1.0f,
-        -1.0f, -1.0f,  1.0f,
          1.0f, -1.0f, -1.0f,
+         // -z
          1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+         1.0f,  1.0f, -1.0f,
+         1.0f, -1.0f, -1.0f,
+         // +z
         -1.0f, -1.0f,  1.0f,
-         1.0f, -1.0f,  1.0f
+         1.0f, -1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+        -1.0f,  1.0f,  1.0f,
+        -1.0f, -1.0f,  1.0f,
     };
 
     float half_length = length / 2;
     constexpr int count = sizeof(cubeVertices) / sizeof(float) / 3;
 
+    glm::vec2 texCoords[] = {
+        { 0.0, 0.0 }, { 1.0, 0.0 }, { 1.0, 1.0 },
+        { 1.0, 1.0 }, { 0.0, 1.0 }, { 0.0, 0.0 }
+    };
     Vertex* vertices = new Vertex[count];
     for (int i = 0; i < count; i++)
     {
         int k = 3 * i;
-        vertices[i] = { { cubeVertices[k], cubeVertices[k + 1], cubeVertices[k + 2] }, { cubeVertices[k] / 2.0f + 0.5f, cubeVertices[k + 1] / 2.0f + 0.5f } };
+        vertices[i] = { { cubeVertices[k], cubeVertices[k + 1], cubeVertices[k + 2] }, { texCoords[i % 6] } };
     }
 
     Model* model = new Model(count, vertices);
