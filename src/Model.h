@@ -58,7 +58,7 @@ public:
         updateTransformation();
     }
 
-    void setRotation(glm::mat4x4 &rotation)
+    void setRotation(glm::mat4x4 rotation)
     {
         this->rotation = rotation;
         updateTransformation();

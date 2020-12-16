@@ -82,21 +82,49 @@ void mouseMove(int mx, int my) {
 
 void moveModels(float full_time, float delta_time)
 {
-
+    rotating_1->model->setRotation(glm::rotate(full_time, glm::vec3(0, 1, 0)));
+    rotating_2->model->setRotation(glm::rotate(2 * full_time, glm::vec3(0, 1, 0)));
+    rotating_framed->model->setRotation(glm::rotate(4 * full_time, glm::vec3(1, 0, 0)));
+    oscillating_1->model->setShift({ 15, 0, -8 + sin(2*full_time) });
+    float t = 3 * full_time, L = 10, l = 1, alpha = l / L * sin(t);
+    oscillating_2->model->setTransform({ 15, L*(1 - sqrt(1 - alpha * alpha)), -14 + L * alpha }, glm::rotate(-alpha, glm::vec3(1, 0, 0)));
 }
 
 void loadMovingModels()
 {
     Texture* smooth_texture = new Texture(program, "white.png", "smooth_normal.png");
-    rotating_1 = makeCube(1, { 10, 0, -1.5 }, glm::identity<glm::mat4>(), smooth_texture);
-    rotating_2 = makeCube(1, { 0, 0, -1.5 }, glm::identity<glm::mat4>(), smooth_texture);
-    //rotating_frame
-    Texture* point_texture = new Texture(program, "point.png", "smooth_normal.png");
-    rotating_framed = makeCube(1, { 0, 0, -1.5 }, glm::identity<glm::mat4>(), smooth_texture);
-    jumping_1 = makeCube(1, { 0, 0, -1.5 }, glm::identity<glm::mat4>(), smooth_texture);
-    oscillating_1 = makeCube(1, { 0, 0, -1.5 }, glm::identity<glm::mat4>(), smooth_texture);
-    oscillating_2 = makeCube(1, { 0, 0, -1.5 }, glm::identity<glm::mat4>(), smooth_texture);
+    rotating_1 = makeCube(1, { 8, 0, -8 }, glm::identity<glm::mat4>(), smooth_texture);
+    rotating_2 = makeCube(1, { 8, 0, -10 }, glm::identity<glm::mat4>(), smooth_texture);
+    models.push_back(rotating_1);
+    models.push_back(rotating_2);
     //mirror_cube
+
+    //rotating_frame
+    TexturedModel* d = makeCube(0.7, { 8.5, -0.7, -14 }, glm::identity<glm::mat4>(), smooth_texture);
+    TexturedModel* ld = makeCube(0.7, { 8.5, -0.7, -13.3 }, glm::identity<glm::mat4>(), smooth_texture);
+    TexturedModel* l = makeCube(0.7, { 8.5, 0.0, -13.3 }, glm::identity<glm::mat4>(), smooth_texture);
+    TexturedModel* lu = makeCube(0.7, { 8.5, 0.7, -13.3 }, glm::identity<glm::mat4>(), smooth_texture);
+    TexturedModel* u = makeCube(0.7, { 8.5, 0.7, -14 }, glm::identity<glm::mat4>(), smooth_texture);
+    TexturedModel* ru = makeCube(0.7, { 8.5, 0.7, -14.7 }, glm::identity<glm::mat4>(), smooth_texture);
+    TexturedModel* r = makeCube(0.7, { 8.5, 0.0, -14.7 }, glm::identity<glm::mat4>(), smooth_texture);
+    TexturedModel* rd = makeCube(0.7, { 8.5, -0.7, -14.7 }, glm::identity<glm::mat4>(), smooth_texture);
+    models.push_back(d);
+    models.push_back(ld);
+    models.push_back(l);
+    models.push_back(lu);
+    models.push_back(u);
+    models.push_back(ru);
+    models.push_back(r);
+    models.push_back(rd);
+    Texture* point_texture = new Texture(program, "point.png", "smooth_normal.png");
+    rotating_framed = makeCube(1, { 8, 0, -14 }, glm::identity<glm::mat4>(), point_texture);
+    models.push_back(rotating_framed);
+
+    oscillating_1 = makeCube(1, { 15, 0, -8 }, glm::identity<glm::mat4>(), smooth_texture);
+    oscillating_2 = makeCube(1, { 15, 0, -14 }, glm::identity<glm::mat4>(), smooth_texture);
+    models.push_back(oscillating_1);
+    models.push_back(oscillating_2);
+    //jumping_1 = makeCube(1, { 0, 0, -1.5 }, glm::identity<glm::mat4>(), smooth_texture);
 }
 
 void loadModels()
@@ -200,6 +228,8 @@ void idle()
         // animations
         float angle = full_time / 10;
         movable_light->light_pos = glm::vec4(2 * glm::sin(angle), 1, 2 * glm::cos(angle), 0);
+
+        moveModels(full_time, delta);
 
         // physics
         glm::vec3 prev_pos = camera.getPosition();
