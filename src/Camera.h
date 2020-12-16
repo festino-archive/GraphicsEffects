@@ -106,9 +106,10 @@ public:
 
 	glm::vec3 getRelative(float cameraX, float cameraY, float cameraZ)
 	{
-		glm::vec3 forward = rot * glm::vec4(cameraX, 0, 0, 1); // check xyz, check if need inverted rot
-		glm::vec3 right = rot * glm::vec4(0, cameraY, 0, 1);
-		glm::vec3 up = rot * glm::vec4(0, 0, cameraZ, 1);
+		glm::mat4x4 antirot = glm::transpose(rot);
+		glm::vec3 forward = antirot * glm::vec4(cameraX, 0, 0, 1);
+		glm::vec3 right = antirot * glm::vec4(0, cameraY, 0, 1);
+		glm::vec3 up = antirot * glm::vec4(0, 0, cameraZ, 1);
 		return pos + forward + right + up;
 	}
 

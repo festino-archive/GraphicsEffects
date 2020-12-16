@@ -8,5 +8,8 @@ struct Vertex
 {
     glm::vec3 position;
     glm::vec2 texcoords;
+    glm::vec3 normal;
+    glm::vec3 tangent;
+    glm::vec3 bitangent;
 };
 #pragma pack()

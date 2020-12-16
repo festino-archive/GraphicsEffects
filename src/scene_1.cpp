@@ -133,7 +133,8 @@ void loadModels()
     TexturedModel* model = makeCube(1, { 0, 0, -1.5 }, glm::identity<glm::mat4>(), texture);
     models.push_back(model);
     texture = new Texture(program, "brick.png", "brick_normal.png");
-    model = makeCube(2, { 3, 0.5, 0 }, glm::identity<glm::mat4>(), texture);
+    texture->setProperties(0.6, 0.2, 10.0);
+    model = makeCube(2, { 3.5, 0.5, 0 }, glm::identity<glm::mat4>(), texture);
     models.push_back(model);
 
     float size = 1;
@@ -226,7 +227,12 @@ void idle()
         //cout << "FPS: " << 1 / avg << endl;
 
         // animations
-        float angle = full_time / 10;
+        if (controller->lantern) {
+            controller->lantern_obj->light_pos = glm::vec4(camera.getRelative(-0.5, 0, -0.3), 1);
+            cout << to_string(controller->lantern_obj->light_pos) << endl;
+        }
+
+        float angle = full_time / 5;
         movable_light->light_pos = glm::vec4(2 * glm::sin(angle), 1, 2 * glm::cos(angle), 0);
 
         moveModels(full_time, delta);
@@ -483,10 +489,6 @@ void display()
     glUniform3fv(cameraLoc, 1, &pos[0]);
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, camera.getMvpLoc());
 
-    if (controller->lantern)
-    {
-        controller->lantern_obj->light_pos = glm::vec4(camera.getRelative(-0.5, 0, -0.3), 1);
-    }
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightsLoc);
     Omnilight *lights_arr = new Omnilight[lights.size()];
     for (int i = 0; i < lights.size(); i++)
@@ -601,8 +603,8 @@ void initGL()
     glBufferData(GL_SHADER_STORAGE_BUFFER, lights.size() * sizeof(Omnilight), &lights[0], GL_STATIC_READ);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, lightsLoc);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-    lights.push_back(new Omnilight { {1, 0.5, 1, 0}, {0.9, 1, 0.9, 0}, {0.9, 1, 0.9, 0}, 0.7, 0.2 });
-    movable_light = new Omnilight { {0, 1, 2, 0}, {0.9, 0, 0, 0}, {0.9, 0, 0, 0}, 0.7, 0.2 };
+    lights.push_back(new Omnilight { {1, 0.5, 1, 0}, {0.9, 1, 0.9, 0}, {0.9, 1, 0.9, 0} });
+    movable_light = new Omnilight { {0, 1, 2, 0}, {0.9, 0, 0, 0}, {0.9, 0, 0, 0} };
     lights.push_back(movable_light);
 
     loadModels();

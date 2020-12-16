@@ -51,13 +51,6 @@ TexturedModel* makeCube(float length, glm::vec3 pos, glm::mat4x4 rotation, Textu
          1.0f,  1.0f,  1.0f,
          1.0f,  1.0f, -1.0f,
          1.0f, -1.0f, -1.0f,
-         // +y
-        -1.0f,  1.0f, -1.0f,
-         1.0f,  1.0f, -1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-        -1.0f,  1.0f,  1.0f,
-        -1.0f,  1.0f, -1.0f,
          // -y
          1.0f, -1.0f, -1.0f,
          1.0f, -1.0f,  1.0f,
@@ -65,6 +58,13 @@ TexturedModel* makeCube(float length, glm::vec3 pos, glm::mat4x4 rotation, Textu
         -1.0f, -1.0f,  1.0f,
         -1.0f, -1.0f, -1.0f,
          1.0f, -1.0f, -1.0f,
+         // +y
+        -1.0f,  1.0f, -1.0f,
+         1.0f,  1.0f, -1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+        -1.0f,  1.0f,  1.0f,
+        -1.0f,  1.0f, -1.0f,
          // -z
          1.0f, -1.0f, -1.0f,
         -1.0f, -1.0f, -1.0f,
@@ -88,11 +88,20 @@ TexturedModel* makeCube(float length, glm::vec3 pos, glm::mat4x4 rotation, Textu
         { 0.0, 0.0 }, { 1.0, 0.0 }, { 1.0, 1.0 },
         { 1.0, 1.0 }, { 0.0, 1.0 }, { 0.0, 0.0 }
     };
+    glm::vec3 normals[] = {
+        { -1.0, 0.0, 0.0 }, { 1.0, 0.0, 0.0 }, { 0.0, -1.0, 0.0 }, { 0.0, 1.0, 0.0 }, { 0.0, 0.0, -1.0 }, { 0.0, 0.0, 1.0 }
+    };
+    glm::vec3 tangents[] = {
+        { 0.0, 0.0, -1.0 }, { 0.0, 0.0, 1.0 }, { -1.0, 0.0, 0.0 }, { 1.0, 0.0, 0.0 }, { 0.0, -1.0, 0.0 }, { 0.0, 1.0, 0.0 }
+    };
+    glm::vec3 bitangents[] = {
+        { 0.0, -1.0, 0.0 }, { 0.0, 1.0, 0.0 }, { 0.0, 0.0, -1.0 }, { 0.0, 0.0, 1.0 }, { -1.0, 0.0, 0.0 }, { 1.0, 0.0, 0.0 }
+    };
     Vertex* vertices = new Vertex[count];
     for (int i = 0; i < count; i++)
     {
         int k = 3 * i;
-        vertices[i] = { { cubeVertices[k], cubeVertices[k + 1], cubeVertices[k + 2] }, { texCoords[i % 6] } };
+        vertices[i] = { { cubeVertices[k], cubeVertices[k + 1], cubeVertices[k + 2] }, texCoords[i % 6], normals[i / 6], tangents[i / 6], bitangents[i / 6] };
     }
 
     Model* model = new Model(count, vertices);

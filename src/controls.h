@@ -47,7 +47,7 @@ public:
             lantern = false;
         }
         else {
-            lantern_obj = new Omnilight{ {0, 0, 0, 1}, {0.82, 0.4, 0.1, 0}, {0.82, 0.4, 0.1, 0}, 0.9, 0.1 };
+            lantern_obj = new Omnilight{ {0, 0, 0, 1}, {0.82, 0.4, 0.1, 0}, {0.82, 0.4, 0.1, 0} };
             lights->push_back(lantern_obj);
             lantern = true;
         }
