@@ -29,7 +29,7 @@ out vec4 color;
 
 void main() {
 	vec4 normal_unnorm = texture2D(normalMap, texCoords);
-	normal_unnorm = (normal_unnorm - vec4(0.5, 0.5, 0.5, 0)) * 2.0;
+	normal_unnorm = (normal_unnorm - 0.5f) * 2.0;
 	vec4 normal = normalize(normal_unnorm);
 	vec4 toCamera = vec4(normalize(toCamera_unnorm), 0);
 
