@@ -41,8 +41,12 @@ public:
     glm::mat4x4 clipNearPlane(glm::mat4x4 proj)
     {
         glm::vec4 clipPlane = getFullNormal();
-        if (clipPlane.w > 0)
+        //if (clipPlane.w > 0) // does nothing, plane doesn't change clip direction, w is always < 0
+        //    clipPlane = -clipPlane;
+        if (clipPlane.z > 0) {
             clipPlane = -clipPlane;
+            clipPlane.w = -clipPlane.w;
+        }
         glm::vec4 q = glm::inverse(proj) * glm::vec4(
             sgn(clipPlane.x),
             sgn(clipPlane.y),

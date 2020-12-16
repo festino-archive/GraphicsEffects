@@ -142,6 +142,10 @@ void loadModels()
     model = makeCube(1, { 3.5, 0, 2 }, glm::identity<glm::mat4>(), only_normals);
     models.push_back(model);
 
+    //Texture* face_texture = new Texture(program, "white.png", "face.png");
+    //model = makeCube(1, { -52, 0.5, 52 }, glm::identity<glm::mat4>(), face_texture);
+    //models.push_back(model);
+
     texture = new Texture(program, "brick.png", "brick_normal.png");
     float size = 1;
     float offset = -3.5;
