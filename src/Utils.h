@@ -36,55 +36,58 @@ string to_string(glm::mat4x4 m)
 
 TexturedModel* makeCube(float length, glm::vec3 pos, glm::mat4x4 rotation, Texture* texture)
 {
-    float cubeVertices[] = {
+    glm::vec3 cubeVertices[] = {
+
+
+
         // -x
-        -1.0f, -1.0f,  1.0f,
-        -1.0f, -1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f,  1.0f,
-        -1.0f, -1.0f,  1.0f,
+        {-1.0f, -1.0f, -1.0f},
+        {-1.0f, -1.0f,  1.0f},
+        {-1.0f,  1.0f,  1.0f},
+        {-1.0f,  1.0f,  1.0f},
+        {-1.0f,  1.0f, -1.0f},
+        {-1.0f, -1.0f, -1.0f},
         // +x
-         1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
+        {1.0f, -1.0f,  1.0f},
+        {1.0f, -1.0f, -1.0f},
+        {1.0f,  1.0f, -1.0f},
+        {1.0f,  1.0f, -1.0f},
+        {1.0f,  1.0f,  1.0f},
+        {1.0f, -1.0f,  1.0f},
          // -y
-         1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f,  1.0f,
-        -1.0f, -1.0f,  1.0f,
-        -1.0f, -1.0f,  1.0f,
-        -1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
+        {1.0f, -1.0f, -1.0f},
+        {1.0f, -1.0f,  1.0f},
+        {-1.0f, -1.0f,  1.0f},
+        {-1.0f, -1.0f,  1.0f},
+        {-1.0f, -1.0f, -1.0f},
+        {1.0f, -1.0f, -1.0f},
          // +y
-        -1.0f,  1.0f, -1.0f,
-         1.0f,  1.0f, -1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-        -1.0f,  1.0f,  1.0f,
-        -1.0f,  1.0f, -1.0f,
+        {1.0f, 1.0f, 1.0f},
+        {1.0f, 1.0f,  -1.0f},
+        {-1.0f, 1.0f,  -1.0f},
+        {-1.0f, 1.0f,  -1.0f},
+        {-1.0f, 1.0f, 1.0f},
+        {1.0f, 1.0f, 1.0f},
          // -z
-         1.0f, -1.0f, -1.0f,
-        -1.0f, -1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
-         1.0f,  1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
+        {1.0f, -1.0f, -1.0f},
+        {-1.0f, -1.0f, -1.0f},
+        {-1.0f,  1.0f, -1.0f},
+        {-1.0f,  1.0f, -1.0f},
+        {1.0f,  1.0f, -1.0f},
+        {1.0f, -1.0f, -1.0f},
          // +z
-        -1.0f, -1.0f,  1.0f,
-         1.0f, -1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-        -1.0f,  1.0f,  1.0f,
-        -1.0f, -1.0f,  1.0f,
+        {-1.0f, -1.0f,  1.0f},
+        {1.0f, -1.0f,  1.0f},
+        {1.0f,  1.0f,  1.0f},
+        {1.0f,  1.0f,  1.0f},
+        {-1.0f,  1.0f,  1.0f},
+        {-1.0f, -1.0f,  1.0f},
     };
 
     float half_length = length / 2;
-    constexpr int count = sizeof(cubeVertices) / sizeof(float) / 3;
+    constexpr int count = sizeof(cubeVertices) / sizeof(glm::vec3);
 
-    glm::vec2 texCoords[] = {
+    /*glm::vec2 texCoords[] = {
         { 0.0, 0.0 }, { 1.0, 0.0 }, { 1.0, 1.0 },
         { 1.0, 1.0 }, { 0.0, 1.0 }, { 0.0, 0.0 }
     };
@@ -102,8 +105,22 @@ TexturedModel* makeCube(float length, glm::vec3 pos, glm::mat4x4 rotation, Textu
     {
         int k = 3 * i;
         vertices[i] = { { cubeVertices[k], cubeVertices[k + 1], cubeVertices[k + 2] }, texCoords[i % 6], normals[i / 6], tangents[i / 6], bitangents[i / 6] };
-    }
-
+    }*/
+    glm::vec2 texCoords[] = {
+        { 0.0, 0.0 }, { 1.0, 0.0 }, { 1.0, 1.0 },
+        { 1.0, 1.0 }, { 0.0, 1.0 }, { 0.0, 0.0 },
+        { 0.0, 0.0 }, { 1.0, 0.0 }, { 1.0, 1.0 },
+        { 1.0, 1.0 }, { 0.0, 1.0 }, { 0.0, 0.0 },
+        { 0.0, 0.0 }, { 1.0, 0.0 }, { 1.0, 1.0 },
+        { 1.0, 1.0 }, { 0.0, 1.0 }, { 0.0, 0.0 },
+        { 0.0, 0.0 }, { 1.0, 0.0 }, { 1.0, 1.0 },
+        { 1.0, 1.0 }, { 0.0, 1.0 }, { 0.0, 0.0 },
+        { 0.0, 0.0 }, { 1.0, 0.0 }, { 1.0, 1.0 },
+        { 1.0, 1.0 }, { 0.0, 1.0 }, { 0.0, 0.0 },
+        { 0.0, 0.0 }, { 1.0, 0.0 }, { 1.0, 1.0 },
+        { 1.0, 1.0 }, { 0.0, 1.0 }, { 0.0, 0.0 },
+    };
+    Vertex* vertices = TexturedModel::createVertices(count, cubeVertices, texCoords);
     Model* model = new Model(count, vertices);
     model->setTransform(pos, rotation, glm::vec3(half_length));
     return new TexturedModel(model, texture);

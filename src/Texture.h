@@ -13,7 +13,7 @@ class Texture
 
     float light_impact = 0.7;
     float spec_impact = 0.2;
-    float shininess = 1;
+    float shininess = 20;
 public:
 	Texture(GLuint program, const char colorPath[], const char normalPath[])
 	{

@@ -50,6 +50,14 @@ public:
             lantern_obj = new Omnilight{ {0, 0, 0, 1}, {0.82, 0.4, 0.1, 0}, {0.82, 0.4, 0.1, 0} };
             lights->push_back(lantern_obj);
             lantern = true;
+            try_move_lantern();
+        }
+    }
+
+    void try_move_lantern()
+    {
+        if (lantern) {
+           lantern_obj->light_pos = glm::vec4(cam->getRelative(-0.5, 0, -0.3), 1);
         }
     }
 

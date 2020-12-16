@@ -29,31 +29,29 @@ in mat3 TBN;
 out vec4 color;
 
 void main() {
-	vec4 normal_unnorm = texture2D(normalMap, texCoords);
+	vec3 normal_unnorm = vec3(texture2D(normalMap, texCoords));
 	normal_unnorm = (normal_unnorm - 0.5f) * 2.0;
-	vec4 normal = normalize(normal_unnorm);
-	normal = vec4(normalize(TBN * vec3(normal)), 0.0);  
-	vec4 toCamera = vec4(normalize(toCamera_unnorm), 0);
+	vec3 normal_temp = normalize(normal_unnorm);
+	vec4 normal = vec4(normalize(TBN * normal_temp), 0.0);  
+	vec4 toCamera = vec4(normalize(toCamera_unnorm), 0.0);
 
 	vec4 ambient = AmbientImpact * AmbientColor;
 	vec4 rgb = ambient;
 
 	for (int i = 0; i < lights.length(); i++) {
-		vec4 toLight = lights[i].position - vec4(vertex, 0);
-		float dist = dot(toLight, toLight);
+		vec4 toLight = lights[i].position - vec4(vertex, 0.0);
 		toLight = normalize(toLight);
-		vec4 reflected = 2 * dot(toLight, normal) * normal - toLight;
-		reflected = normalize(reflected);
-	
-		vec4 diffuse = light_impact * dot(toLight, normal) * lights[i].lightColor;
-		diffuse = clamp(diffuse, 0, 1);
-		vec4 specular = spec_impact * pow(clamp(dot(toCamera, reflected), 0, 1), shininess) * lights[i].specColor;
-
-		if (dot(toLight, normal) <= 0.0)
+		if (dot(toLight, normal) > 0.0)
 		{
-			specular = vec4(0,0,0,0);
+			float dist = dot(toLight, toLight);
+			vec4 reflected = 2 * dot(toLight, normal) * normal - toLight;
+			reflected = normalize(reflected);
+	
+			vec4 diffuse = light_impact * dot(toLight, normal) * lights[i].lightColor;
+			diffuse = clamp(diffuse, 0, 1);
+			vec4 specular = spec_impact * pow(clamp(dot(toCamera, reflected), 0, 1), shininess) * lights[i].specColor;
+			rgb += (diffuse + specular) / sqrt(dist);
 		}
-		rgb += (diffuse + specular) / sqrt(dist);
 	}
 
 	vec4 objectColor = texture2D(colorMap, texCoords);

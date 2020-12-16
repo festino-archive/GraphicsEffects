@@ -132,11 +132,17 @@ void loadModels()
     Texture* texture = new Texture(program, "prev.png", "smooth_normal.png");
     TexturedModel* model = makeCube(1, { 0, 0, -1.5 }, glm::identity<glm::mat4>(), texture);
     models.push_back(model);
-    texture = new Texture(program, "brick.png", "brick_normal.png");
-    texture->setProperties(0.6, 0.2, 10.0);
+
+    texture = new Texture(program, "bricks2.jpg", "bricks2_normal.jpg");
+    texture->setProperties(0.8, 0.2, 10.0);
     model = makeCube(2, { 3.5, 0.5, 0 }, glm::identity<glm::mat4>(), texture);
     models.push_back(model);
 
+    Texture* only_normals = new Texture(program, "white.png", "brick_normal.png");
+    model = makeCube(1, { 3.5, 0, 2 }, glm::identity<glm::mat4>(), only_normals);
+    models.push_back(model);
+
+    texture = new Texture(program, "brick.png", "brick_normal.png");
     float size = 1;
     float offset = -3.5;
     for (int i = 0; i < 10; i++) {
@@ -227,10 +233,7 @@ void idle()
         //cout << "FPS: " << 1 / avg << endl;
 
         // animations
-        if (controller->lantern) {
-            controller->lantern_obj->light_pos = glm::vec4(camera.getRelative(-0.5, 0, -0.3), 1);
-            cout << to_string(controller->lantern_obj->light_pos) << endl;
-        }
+        controller->try_move_lantern();
 
         float angle = full_time / 5;
         movable_light->light_pos = glm::vec4(2 * glm::sin(angle), 1, 2 * glm::cos(angle), 0);
@@ -266,14 +269,6 @@ void drawScreenQuad()
     glVertex2f(1.0f, 1.0f);
     glVertex2f(-1.0f, 1.0f);
     glEnd();
-    /*glBegin(GL_TRIANGLES);
-    glVertex2f(-1.0f, -1.0f);
-    glVertex2f(1.0f, -1.0f);
-    glVertex2f(1.0f, 1.0f);
-    glVertex2f(-1.0f, -1.0f);
-    glVertex2f(-1.0f, 1.0f);
-    glVertex2f(1.0f, 1.0f);
-    glEnd();*/
 }
 
 void clearDepthRespectsStencil(float depth)
