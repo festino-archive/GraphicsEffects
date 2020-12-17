@@ -20,6 +20,7 @@ class Model
     }
 public:
     static GLuint modelToWorldLoc;
+    static GLuint modelToWorld_prevLoc;
 
     int vertices_count;
     Vertex* vertices;
@@ -32,6 +33,7 @@ public:
     glm::mat4x4 rotation;
     glm::mat4x4 scale;
     glm::mat4x4 modelToWorld;
+    glm::mat4x4 modelToWorld_prev;
 
     Model(int vertices_count, Vertex* vertices)
         : shift(glm::vec3()), rotation(glm::identity<glm::mat4x4>()), modelToWorld(glm::identity<glm::mat4x4>()), scale(glm::identity<glm::mat4x4>())
@@ -56,6 +58,11 @@ public:
         glEnableVertexAttribArray(2);
         glEnableVertexAttribArray(3);
         glEnableVertexAttribArray(4);
+    }
+
+    void nextFrame()
+    {
+        modelToWorld_prev = modelToWorld;
     }
 
     void setShift(glm::vec3 shift)
@@ -99,9 +106,16 @@ public:
     void draw()
     {
         glUniformMatrix4fv(modelToWorldLoc, 1, GL_FALSE, &modelToWorld[0][0]);
+        glUniformMatrix4fv(modelToWorld_prevLoc, 1, GL_FALSE, &modelToWorld_prev[0][0]);
         glBindVertexArray(vertexArray);
         glDrawArrays(GL_TRIANGLES, 0, vertices_count);
     }
+
+    static void setUniformLocations(GLuint program)
+    {
+        modelToWorldLoc = glGetUniformLocation(program, "modelToWorld");
+        modelToWorld_prevLoc = glGetUniformLocation(program, "modelToWorld_prev");
+    }
 };
 
-GLuint Model::modelToWorldLoc;
+GLuint Model::modelToWorldLoc, Model::modelToWorld_prevLoc;

@@ -50,7 +50,7 @@ vector<Billboard*> billboards = vector<Billboard*>();
 Omnilight *movable_light;
 TexturedModel* player_model;
 Model *mirror_cube[6];
-TexturedModel *rotating_1, *rotating_2, *rotating_framed, *jumping_1, *oscillating_1, *oscillating_2;
+TexturedModel *rotating_1, *rotating_2, *rotating_3, *rotating_framed, *jumping_1, *oscillating_1, *oscillating_2;
 
 Camera camera = Camera(0, 0, glm::vec3(), 0, 0);
 float init_yaw = 0, init_pitch = 0;
@@ -86,8 +86,24 @@ void mouseMove(int mx, int my) {
 void moveModels(float full_time, float delta_time)
 {
     rotating_1->model->setRotation(glm::rotate(full_time, glm::vec3(0, 1, 0)));
-    rotating_2->model->setRotation(glm::rotate(2 * full_time, glm::vec3(0, 1, 0)));
-    rotating_framed->model->setRotation(glm::rotate(4 * full_time, glm::vec3(1, 0, 0)));
+    rotating_2->model->setRotation(glm::rotate(3 * full_time, glm::vec3(0, 1, 0)));
+    rotating_3->model->setRotation(glm::rotate(10 * full_time, glm::vec3(0, 1, 0)));
+
+    /*float angle = 2 * glm::pi<float>() * full_time;
+    float period = 9;
+    if (full_time - period * floor(full_time / period) - period / 3 > 0)
+        angle = 9 * glm::pi<float>() * full_time;
+    if (full_time - period * floor(full_time / period) - 2 * period / 3 > 0)
+        angle = 18 * glm::pi<float>() * full_time;*/
+    /*float period = 10, half_period = period / 2;
+    float local_time = abs(full_time - period * floor(full_time / period) - half_period);
+    float local_angle = 2 * glm::pi<float>() * local_time / half_period;
+    cout << local_angle << endl;
+    float angle = 2 * glm::pi<float>() * (2 * local_angle - 1 * sin(local_angle));*/
+    float local_time = 2 * glm::pi<float>() * full_time / 10;
+    float angle = 2 * glm::pi<float>() * (5 * full_time - 4 * sin(full_time));
+    rotating_framed->model->setRotation(glm::rotate(angle, glm::vec3(1, 0, 0)));
+
     oscillating_1->model->setShift({ 15, 0, -8 + sin(2*full_time) });
     float t = 3 * full_time, L = 10, l = 1, alpha = l / L * sin(t);
     oscillating_2->model->setTransform({ 15, L*(1 - sqrt(1 - alpha * alpha)), -14 + L * alpha }, glm::rotate(-alpha, glm::vec3(1, 0, 0)));
@@ -96,10 +112,12 @@ void moveModels(float full_time, float delta_time)
 void loadMovingModels()
 {
     Texture* smooth_texture = new Texture(program, "white.png", "smooth_normal.png");
-    rotating_1 = makeCube(1, { 8, 0, -8 }, glm::identity<glm::mat4>(), smooth_texture);
-    rotating_2 = makeCube(1, { 8, 0, -10 }, glm::identity<glm::mat4>(), smooth_texture);
+    rotating_1 = makeCube(1, { 8, 0, -7 }, glm::identity<glm::mat4>(), smooth_texture);
+    rotating_2 = makeCube(1, { 8, 0, -9 }, glm::identity<glm::mat4>(), smooth_texture);
+    rotating_3 = makeCube(1, { 8, 0, -11 }, glm::identity<glm::mat4>(), smooth_texture);
     models.push_back(rotating_1);
     models.push_back(rotating_2);
+    models.push_back(rotating_3);
     //mirror_cube
 
     //rotating_frame
@@ -491,12 +509,20 @@ void renderPortalFace(Model* model, std::array<glm::vec3, 3> exit_portal_plane, 
     glDisable(GL_STENCIL_TEST);
 }
 
+void nextFrameTransformations()
+{
+    camera.updateMvp();
+    for (TexturedModel* model : models)
+    {
+        model->model->nextFrame();
+    }
+}
+
 void display()
 {
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mb_fbo);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    camera.updateMvp();
     glUseProgram(program);
     glm::vec3 pos = camera.getPosition();
     glUniform3fv(cameraLoc, 1, &pos[0]);
@@ -568,6 +594,7 @@ void display()
 
     glFlush();
     glutSwapBuffers();
+    nextFrameTransformations();
 }
 void reshape(int width, int height)
 {
@@ -663,7 +690,7 @@ void initGL()
     mvpLoc = glGetUniformLocation(program, "mvp");
     mvp_prevLoc = glGetUniformLocation(program, "mvp_prev");
     cameraLoc = glGetUniformLocation(program, "camera");
-    Model::modelToWorldLoc = glGetUniformLocation(program, "modelToWorld");
+    Model::setUniformLocations(program);
 
     FileUtils::loadShaders(program_mb, "motion_blur.vert", "motion_blur.frag");
     initMBBuffer();

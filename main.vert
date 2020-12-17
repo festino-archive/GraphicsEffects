@@ -7,6 +7,7 @@ uniform mat4 mvp;
 uniform mat4 mvp_prev;
 
 uniform mat4 modelToWorld;
+uniform mat4 modelToWorld_prev;
 layout(location = 0) in vec3 modelPos;
 layout(location = 1) in vec2 tex;
 layout(location = 2) in vec3 normal;
@@ -25,7 +26,7 @@ void main() {
 	vec4 worldPos = modelToWorld * vec4(modelPos, 1);
 	vec4 proj = mvp * worldPos;
 	proj_cur = proj;
-	vec4 worldPos_prev = modelToWorld * vec4(modelPos, 1);
+	vec4 worldPos_prev = modelToWorld_prev * vec4(modelPos, 1);
 	proj_prev = mvp_prev * worldPos_prev;
 
 	gl_Position = proj;
