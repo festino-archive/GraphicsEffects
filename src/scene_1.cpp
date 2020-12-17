@@ -17,6 +17,7 @@
 #include "Model.h"
 #include "TexturedModel.h"
 #include "PortalPair.h"
+#include "Mirror.h"
 
 using namespace std;
 
@@ -44,7 +45,7 @@ GLuint mb_fbo, mb_colorBuffer, mb_motionBuffer, mb_depthBuffer;
 Skybox skybox;
 vector<Omnilight*> lights = vector<Omnilight*>();
 vector<TexturedModel*> models = vector<TexturedModel*>();
-vector<Model*> mirror_faces = vector<Model*>();
+vector<Mirror*> mirrors = vector<Mirror*>();
 vector<PortalPair*> portals = vector<PortalPair*>();
 vector<Billboard*> billboards = vector<Billboard*>();
 Omnilight *movable_light;
@@ -166,11 +167,11 @@ void loadModels()
         models.push_back(model);
     }
 
-    Model* mirror;
-    glm::vec3 p1 = { -3.5, -1.5, 1.5 };
-    glm::vec3 p3 = { -3.5, 1.5, 1.5 };
-    glm::vec3 p2 = { 0.5, -1.5, 3.5 };
-    glm::vec3 p4 = { 0.5, 1.5, 3.5 };
+    Model* mirror_model;
+    glm::vec3 p1 = { 6.5, -1.5, 0.5 };
+    glm::vec3 p3 = { 6.5, 1.5, 0.5 };
+    glm::vec3 p2 = { 8.5, -1.5, 4.5 };
+    glm::vec3 p4 = { 8.5, 1.5, 4.5 };
     Vertex* vertices = new Vertex[6];
     vertices[0] = { p1, {0, 0} };
     vertices[1] = { p2, {0, 0} };
@@ -178,8 +179,9 @@ void loadModels()
     vertices[3] = { p1, {0, 0} };
     vertices[4] = { p3, {0, 0} };
     vertices[5] = { p4, {0, 0} };
-    mirror = new Model(6, vertices);
-    //mirror_faces.push_back(mirror);
+    mirror_model = new Model(6, vertices);
+    Mirror *mirror = new Mirror(mirror_model);
+    mirrors.push_back(mirror);
 
     float length2 = 2;
     p1 = { -length2, -length2, 1.5 };
@@ -193,8 +195,9 @@ void loadModels()
     vertices[3] = { p1, {0, 0} };
     vertices[4] = { p3, {0, 0} };
     vertices[5] = { p4, {0, 0} };
-    mirror = new Model(6, vertices);
-    //mirror_faces.push_back(mirror);
+    mirror_model = new Model(6, vertices);
+    mirror = new Mirror(mirror_model);
+    //mirrors.push_back(mirror);
 
     glm::vec2 triangles[] = {
         { -0.5, 0.0 }, { 1.5, 4.0 }, { 1.5, 0.0 },
@@ -444,7 +447,9 @@ void renderFog(glm::vec3 cam_pos, glm::mat4x4 mvp)
     glDepthFunc(GL_LEQUAL);
 }
 
-void renderPortalFace(Model* model, std::array<glm::vec3, 3> exit_portal_plane, glm::mat4x4 proj, glm::mat4x4 rot, glm::vec3 pos)
+void renderPortalFace(Model* model, std::array<glm::vec3, 3> exit_portal_plane,
+        glm::mat4x4 proj, glm::mat4x4 rot, glm::vec3 pos,
+        glm::mat4x4 rot_prev, glm::vec3 pos_prev)
 {
     glEnable(GL_STENCIL_TEST);
 
@@ -464,18 +469,23 @@ void renderPortalFace(Model* model, std::array<glm::vec3, 3> exit_portal_plane, 
     // render mirrored objects
     glm::mat4x4 mvp_centered = proj * rot;
     glm::mat4x4 mv = rot * glm::translate(-pos);
-    Plane plane2 = Plane(mv * glm::vec4(exit_portal_plane[0], 1.0),
+    Plane clip_plane = Plane(mv * glm::vec4(exit_portal_plane[0], 1.0),
         mv * glm::vec4(exit_portal_plane[1], 1.0),
         mv * glm::vec4(exit_portal_plane[2], 1.0));
-    glm::mat4x4 mvp = plane2.clipNearPlane(proj) * mv;
+    glm::mat4x4 oblique_proj = clip_plane.clipNearPlane(proj);
+    glm::mat4x4 mvp = oblique_proj * mv;
+
+    glm::mat4x4 mvp_centered_prev = proj * rot_prev;
+    glm::mat4x4 mv_prev = rot_prev * glm::translate(-pos_prev);
+    glm::mat4x4 mvp_prev = oblique_proj * mv_prev;
 
     glUniform3fv(cameraLoc, 1, &pos[0]);
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, &mvp[0][0]);
-    glUniformMatrix4fv(mvp_prevLoc, 1, GL_FALSE, &mvp[0][0]);
+    glUniformMatrix4fv(mvp_prevLoc, 1, GL_FALSE, &mvp_prev[0][0]);
     renderRegularObjects();
 
     // render mirrored skybox
-    skybox.draw(pos, &mvp_centered[0][0], &mvp_centered[0][0]); // TODO fix prev
+    skybox.draw(pos, &mvp_centered[0][0], &mvp_centered_prev[0][0]);
 
     //renderFog(pos, mvp);
     renderBillboards(mvp, mv);
@@ -498,9 +508,13 @@ void renderPortalFace(Model* model, std::array<glm::vec3, 3> exit_portal_plane, 
     glDisable(GL_STENCIL_TEST);
 }
 
-void nextFrameTransformations()
+void beforeFrameTransformations()
 {
     camera.updateMvp();
+}
+
+void afterFrameTransformations()
+{
     for (TexturedModel* model : models)
     {
         model->model->nextFrame();
@@ -511,6 +525,7 @@ void display()
 {
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mb_fbo);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    beforeFrameTransformations();
 
     glUseProgram(program);
     glm::vec3 pos = camera.getPosition();
@@ -529,13 +544,13 @@ void display()
 
     renderRegularObjects();
 
-    for (Model* mirror : mirror_faces)
+    setDrawBuffers(1);
+    for (Mirror* mirror : mirrors)
     {
-        Plane plane = Plane(mirror->vertices[0].position, mirror->vertices[1].position, mirror->vertices[2].position);
-        glm::vec3 pos_flipped = plane.flip(camera.getPosition());
-        glm::mat4x4 rot_flipped = plane.flipRotation(camera.getRot());
-        std::array<glm::vec3, 3> mirror_plane = { mirror->vertices[0].position, mirror->vertices[1].position, mirror->vertices[2].position };
-        renderPortalFace(mirror, mirror_plane, camera.getProj(), rot_flipped, pos_flipped);
+        mirror->updatePlane();
+        renderPortalFace(mirror->model, mirror->getPlane(), camera.getProj(),
+            mirror->flipRot(camera.getRot()), mirror->flip(camera.getPosition()),
+            mirror->rot_prev, mirror->pos_prev);
     }
 
     glm::mat4x4 camLocalToWorld = glm::translate(camera.getPosition()) * glm::transpose(camera.getRot());
@@ -548,13 +563,18 @@ void display()
         glm::vec3 pos1 = glm::vec3(mv1[3]);
         glm::mat4x4 rot1 = mv1;
         rot1[3][0] = rot1[3][1] = rot1[3][2] = 0;
-        renderPortalFace(portal1->model, portal2->getPoints(), camera.getProj(), glm::transpose(rot1), pos1);
+        renderPortalFace(portal1->model, portal2->getPoints(),
+            camera.getProj(), glm::transpose(rot1), pos1,
+            glm::transpose(rot1), pos1); // TODO fix prev
         glm::mat4x4 mv2 = portal1->getLocalToWorld() * portal2->getWorldToLocal() * camLocalToWorld;
         glm::vec3 pos2 = glm::vec3(mv2[3]);
         glm::mat4x4 rot2 = mv2;
         rot2[3][0] = rot2[3][1] = rot2[3][2] = 0;
-        renderPortalFace(portal2->model, portal1->getPoints(), camera.getProj(), glm::transpose(rot2), pos2);
+        renderPortalFace(portal2->model, portal1->getPoints(),
+            camera.getProj(), glm::transpose(rot2), pos2,
+            glm::transpose(rot2), pos2);
     }
+    setDrawBuffers(2);
 
     skybox.draw(camera.getPosition(), camera.getMvp_centeredLoc(), camera.getMvp_centered_prevLoc());
 
@@ -583,7 +603,7 @@ void display()
 
     glFlush();
     glutSwapBuffers();
-    nextFrameTransformations();
+    afterFrameTransformations();
 }
 void reshape(int width, int height)
 {

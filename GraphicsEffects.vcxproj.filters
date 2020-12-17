@@ -104,6 +104,9 @@
     <ClInclude Include="src\Billboard.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Mirror.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="NBlinnVertex.glsl">

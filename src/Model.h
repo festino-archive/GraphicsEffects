@@ -98,6 +98,11 @@ public:
         updateTransformation();
     }
 
+    glm::vec3 getWorldPoint(int index)
+    {
+        return modelToWorld * glm::vec4(vertices[index].position, 1.0);
+    }
+
     glm::mat4x4 getTransform()
     {
         return modelToWorld;

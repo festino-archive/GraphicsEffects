@@ -172,6 +172,7 @@
     <ClInclude Include="src\Examples\NormalMapping.h" />
     <ClInclude Include="src\Examples\test_shaders.h" />
     <ClInclude Include="src\FileUtils.h" />
+    <ClInclude Include="src\Mirror.h" />
     <ClInclude Include="src\Model.h" />
     <ClInclude Include="src\TexturedModel.h" />
     <ClInclude Include="src\Plane.h" />
