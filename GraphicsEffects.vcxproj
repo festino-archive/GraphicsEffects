@@ -190,6 +190,8 @@
     <None Include="billboard.frag" />
     <None Include="billboard.vert" />
     <None Include="fog.vert" />
+    <None Include="motion_blur.frag" />
+    <None Include="motion_blur.vert" />
     <None Include="NBlinnFragment.glsl" />
     <None Include="NBlinnVertex.glsl" />
     <None Include="nuller.frag" />

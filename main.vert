@@ -17,6 +17,9 @@ out vec3 toCamera_unnorm;
 out vec2 texCoords;
 out mat3 TBN;
 
+out vec4 proj_cur;
+out vec4 proj_prev;
+
 void main() {
 	vec4 worldPos = modelToWorld * vec4(modelPos, 1);
 	vec4 proj = mvp * worldPos;
@@ -31,4 +34,7 @@ void main() {
 	vec3 B = normalize(vec3(modelToWorld * vec4(bitangent, 0.0)));
 	vec3 N = normalize(vec3(modelToWorld * vec4(normal, 0.0)));
 	TBN = mat3(T, B, N);
+
+	proj_cur = proj;
+	proj_prev = proj;
 }

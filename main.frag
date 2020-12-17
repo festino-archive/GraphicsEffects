@@ -26,7 +26,12 @@ in vec3 vertex;
 in vec3 toCamera_unnorm;
 in vec2 texCoords;
 in mat3 TBN;
-out vec4 color;
+
+in vec4 proj_cur;
+in vec4 proj_prev;
+
+layout (location = 0) out vec3 color;
+layout (location = 1) out vec2 motion;
 
 void main() {
 	vec3 normal_unnorm = vec3(texture2D(normalMap, texCoords));
@@ -56,11 +61,9 @@ void main() {
 
 	vec4 objectColor = texture2D(colorMap, texCoords);
 	rgb *= objectColor;
-	//rgb = normal;
-	//rgb = vec4(vec3( (2.0 * 0.1f) / (50.0f + 0.1f - (gl_FragCoord.z * 2.0 - 1.0) * (50.0f - 0.1f)) ), 1);
-	//rgb = texture(min_z, gl_FragCoord.xy / vec2(1280, 720));
-	//float z = (2.0 * 0.1f) / (50.0f + 0.1f - (gl_FragCoord.z * 2.0 - 1.0) * (50.0f - 0.1f));
-	//float z_min = (2.0 * 0.1f) / (50.0f + 0.1f - (texture(min_z, gl_FragCoord.xy / vec2(1280, 720)).z * 2.0 - 1.0) * (50.0f - 0.1f));
-	//rgb =  vec4(0 + 1f*vec3(z - z_min), 1);
-	color = rgb;
+	color = vec3(rgb);
+
+	vec3 ndc_cur = (proj_cur / proj_cur.w).xyz;
+    vec3 ndc_prev = (proj_prev / proj_prev.w).xyz;
+    motion = (ndc_cur - ndc_prev).xy;
 }

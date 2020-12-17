@@ -148,5 +148,11 @@
     <None Include="billboard.vert">
       <Filter>Source Files\shaders</Filter>
     </None>
+    <None Include="motion_blur.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="motion_blur.vert">
+      <Filter>Source Files\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

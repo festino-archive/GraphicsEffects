@@ -37,6 +37,9 @@ GLuint program_billboard;
 GLuint program;
 GLuint mvpLoc, cameraLoc, lightsLoc;
 
+GLuint program_mb;
+GLuint m_fbo, mb_colorBuffer, mb_motionBuffer, mb_depthBuffer;
+
 
 Skybox skybox;
 vector<Omnilight*> lights = vector<Omnilight*>();
@@ -480,6 +483,7 @@ void renderPortalFace(Model* model, std::array<glm::vec3, 3> exit_portal_plane, 
 
 void display()
 {
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     camera.updateMvp();
@@ -494,8 +498,8 @@ void display()
         lights_arr[i] = *lights[i];
     glBufferData(GL_SHADER_STORAGE_BUFFER, lights.size() * sizeof(Omnilight), &lights_arr[0], GL_STATIC_READ);
     delete[] lights_arr;
-    //glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(lights), &lights[0]);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
 
     renderRegularObjects();
 
@@ -528,6 +532,20 @@ void display()
 
     skybox.draw(camera.getPosition(), camera.getMvp_CenteredLoc());
 
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+    glUseProgram(program_mb);
+    glUniform1i(glGetUniformLocation(program_mb, "colorBuffer"), mb_colorBuffer);
+    glUniform1i(glGetUniformLocation(program_mb, "motionBuffer"), mb_motionBuffer);
+    glUniform1i(glGetUniformLocation(program_mb, "depthBuffer"), mb_depthBuffer);
+    glActiveTexture(GL_TEXTURE0 + mb_colorBuffer);
+    glBindTexture(GL_TEXTURE_2D, mb_colorBuffer);
+    glActiveTexture(GL_TEXTURE0 + mb_motionBuffer);
+    glBindTexture(GL_TEXTURE_2D, mb_motionBuffer);
+    glActiveTexture(GL_TEXTURE0 + mb_depthBuffer);
+    glBindTexture(GL_TEXTURE_2D, mb_depthBuffer);
+    drawScreenQuad();
+
     renderFog(pos, camera.getMvp());
     renderBillboards(camera.getMvp(), camera.getRot() * camera.getTranslation());
 
@@ -555,6 +573,45 @@ void initCamera()
 {
     camera = Camera(init_yaw, init_pitch, init_pos, win_width, win_height);
     camera.setProjParams(fov, near_dist, far_dist);
+}
+
+void initMBBuffer()
+{
+    glGenFramebuffers(1, &m_fbo);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
+
+    glGenTextures(1, &mb_colorBuffer);
+    glGenTextures(1, &mb_motionBuffer);
+    glGenTextures(1, &mb_depthBuffer);
+
+    glBindTexture(GL_TEXTURE_2D, mb_colorBuffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, win_width, win_height, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mb_colorBuffer, 0);
+
+    glBindTexture(GL_TEXTURE_2D, mb_motionBuffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, win_width, win_height, 0, GL_RG, GL_FLOAT, NULL);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mb_motionBuffer, 0);
+
+    glBindTexture(GL_TEXTURE_2D, mb_depthBuffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, win_width, win_height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, mb_depthBuffer, 0);
+
+    GLenum DrawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+
+    glDrawBuffers(sizeof(DrawBuffers) / sizeof(DrawBuffers[0]), DrawBuffers);
+
+    GLuint status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        printf("FB error: %x\n", status); // 8cdd = GL_FRAMEBUFFER_UNSUPPORTED, 8cd6 = GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT
+    }
+
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 }
 
 void initGL()
@@ -597,6 +654,9 @@ void initGL()
     cameraLoc = glGetUniformLocation(program, "camera");
     Model::modelToWorldLoc = glGetUniformLocation(program, "modelToWorld");
 
+    FileUtils::loadShaders(program_mb, "motion_blur.vert", "motion_blur.frag");
+    initMBBuffer();
+
     glGenBuffers(1, &lightsLoc);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightsLoc);
     glBufferData(GL_SHADER_STORAGE_BUFFER, lights.size() * sizeof(Omnilight), &lights[0], GL_STATIC_READ);
@@ -607,6 +667,7 @@ void initGL()
     lights.push_back(movable_light);
 
     loadModels();
+
 
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // GL_LINE
