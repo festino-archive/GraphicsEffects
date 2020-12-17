@@ -15,7 +15,7 @@ class Billboard
 	glm::vec4 pos;
 	glm::vec2 offset, scale;
 	float z = 0;
-	float real_z = 0;
+	glm::vec4 cs_pos = glm::vec4();
 	float alpha = 0.5;
 	glm::vec4 ndc = glm::vec4();
 
@@ -65,7 +65,7 @@ public:
 		ndc = mvp * pos;
 		ndc /= ndc.w;
 		z = ndc.z;
-		real_z = -(mv * pos).z;
+		cs_pos = mv * pos;
 	}
 	float getZ()
 	{
@@ -77,15 +77,18 @@ public:
 		this->alpha = alpha;
 	}
 
-	void draw()
+	void draw(float fov, float aspect)
 	{
-		if (z > 0 && z < 1)
+		cs_pos.z = -cs_pos.z;
+		if (cs_pos.z > 0.01 && z < 1)
 		{
 			glUniform1f(alphaLoc, alpha);
 			glUniform1f(zLoc, z);
-			glUniform2f(center_posLoc, ndc.x, ndc.y);
-			float half_width = 1.0f / real_z;
-			float half_height = aspect_ratio / real_z;
+			float tg = tan(fov / 180 * glm::pi<float>());
+			glUniform2f(center_posLoc, tg * cs_pos.x / cs_pos.z, tg * aspect * cs_pos.y / cs_pos.z);
+			float size = 1 / cs_pos.z;
+			float half_width = size;
+			float half_height = aspect_ratio * size;
 			glUniform2f(half_sizesLoc, half_width, half_height);
 			glUniform2f(offsetLoc, offset.x, offset.y);
 			glUniform2f(scaleLoc, scale.x, scale.y);

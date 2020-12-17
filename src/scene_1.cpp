@@ -89,17 +89,6 @@ void moveModels(float full_time, float delta_time)
     rotating_2->model->setRotation(glm::rotate(3 * full_time, glm::vec3(0, 1, 0)));
     rotating_3->model->setRotation(glm::rotate(10 * full_time, glm::vec3(0, 1, 0)));
 
-    /*float angle = 2 * glm::pi<float>() * full_time;
-    float period = 9;
-    if (full_time - period * floor(full_time / period) - period / 3 > 0)
-        angle = 9 * glm::pi<float>() * full_time;
-    if (full_time - period * floor(full_time / period) - 2 * period / 3 > 0)
-        angle = 18 * glm::pi<float>() * full_time;*/
-    /*float period = 10, half_period = period / 2;
-    float local_time = abs(full_time - period * floor(full_time / period) - half_period);
-    float local_angle = 2 * glm::pi<float>() * local_time / half_period;
-    cout << local_angle << endl;
-    float angle = 2 * glm::pi<float>() * (2 * local_angle - 1 * sin(local_angle));*/
     float local_time = 2 * glm::pi<float>() * full_time / 10;
     float angle = 2 * glm::pi<float>() * (5 * full_time - 4 * sin(full_time));
     rotating_framed->model->setRotation(glm::rotate(angle, glm::vec3(1, 0, 0)));
@@ -408,7 +397,7 @@ void renderBillboards(glm::mat4x4 mvp, glm::mat4x4 mv)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     for (Billboard* billboard : billboards)
     {
-        billboard->draw();
+        billboard->draw(camera.getFov(), camera.getAspect());
     }
     glBlendFunc(GL_ONE, GL_ZERO);
     glDisable(GL_BLEND);

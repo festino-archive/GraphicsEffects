@@ -47,6 +47,14 @@ public:
 	{
 		return far_dist;
 	}
+	float getFov()
+	{
+		return fov;
+	}
+	float getAspect()
+	{
+		return win_width / win_height;
+	}
 	glm::mat4x4 getProj()
 	{
 		return proj;
@@ -55,6 +63,10 @@ public:
 	{
 		return rot;
 	}
+	glm::mat4x4 getTranslation()
+	{
+		return translation;
+	}
 	glm::mat4x4 getMvp()
 	{
 		return mvp;
@@ -62,6 +74,19 @@ public:
 	glm::mat4x4 getMvp_centered()
 	{
 		return mvp_centered;
+	}
+	glm::vec3 getPosition()
+	{
+		return pos;
+	}
+
+	void updateMvp()
+	{
+		mvp_centered_prev = mvp_centered;
+		mvp_prev = mvp;
+
+		mvp_centered = proj * rot;
+		mvp = mvp_centered * translation;
 	}
 
 	float* getMvp_centered_prevLoc()
@@ -84,24 +109,6 @@ public:
 	float* getPosLoc()
 	{
 		return &pos[0];
-	}
-
-	glm::vec3 getPosition()
-	{
-		return pos;
-	}
-	glm::mat4x4 getTranslation()
-	{
-		return translation;
-	}
-
-	void updateMvp()
-	{
-		mvp_centered_prev = mvp_centered;
-		mvp_prev = mvp;
-
-		mvp_centered = proj * rot;
-		mvp = mvp_centered * translation;
 	}
 
 	bool isTeleported()
