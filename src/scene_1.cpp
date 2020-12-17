@@ -35,7 +35,7 @@ GLuint color_maskLoc, white_textureLoc, white_textureID, linearFiltering;
 GLuint program_billboard;
 
 GLuint program;
-GLuint mvpLoc, cameraLoc, lightsLoc;
+GLuint cameraLoc, lightsLoc, mvpLoc, mvp_prevLoc;
 
 GLuint program_mb;
 GLuint mb_fbo, mb_colorBuffer, mb_motionBuffer, mb_depthBuffer;
@@ -464,6 +464,7 @@ void renderPortalFace(Model* model, std::array<glm::vec3, 3> exit_portal_plane, 
 
     glUniform3fv(cameraLoc, 1, &pos[0]);
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, &mvp[0][0]);
+    glUniformMatrix4fv(mvp_prevLoc, 1, GL_FALSE, &mvp[0][0]);
     renderRegularObjects();
 
     // render mirrored skybox
@@ -476,13 +477,16 @@ void renderPortalFace(Model* model, std::array<glm::vec3, 3> exit_portal_plane, 
     glUniform3fv(cameraLoc, 1, camera.getPosLoc());
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, camera.getMvpLoc());
     // set correct z-buffer
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    glDepthFunc(GL_ALWAYS);
+    model->draw();
+    glDepthFunc(GL_LEQUAL);
     glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
     glStencilFunc(GL_ALWAYS, 0, 1);
-    glDepthFunc(GL_ALWAYS);
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    glDepthMask(GL_FALSE);
     model->draw();
+    glDepthMask(GL_TRUE);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    glDepthFunc(GL_LEQUAL);
 
     glDisable(GL_STENCIL_TEST);
 }
@@ -497,6 +501,7 @@ void display()
     glm::vec3 pos = camera.getPosition();
     glUniform3fv(cameraLoc, 1, &pos[0]);
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, camera.getMvpLoc());
+    glUniformMatrix4fv(mvp_prevLoc, 1, GL_FALSE, camera.getMvp_prevLoc());
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightsLoc);
     Omnilight *lights_arr = new Omnilight[lights.size()];
@@ -656,6 +661,7 @@ void initGL()
     FileUtils::loadShaders(program, "main.vert", "main.frag");
     glUseProgram(program);
     mvpLoc = glGetUniformLocation(program, "mvp");
+    mvp_prevLoc = glGetUniformLocation(program, "mvp_prev");
     cameraLoc = glGetUniformLocation(program, "camera");
     Model::modelToWorldLoc = glGetUniformLocation(program, "modelToWorld");
 

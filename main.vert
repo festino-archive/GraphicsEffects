@@ -4,6 +4,7 @@ uniform vec3 camera;
 uniform float near = 0.1f;
 uniform float far = 50.0f;
 uniform mat4 mvp;
+uniform mat4 mvp_prev;
 
 uniform mat4 modelToWorld;
 layout(location = 0) in vec3 modelPos;
@@ -23,6 +24,9 @@ out vec4 proj_prev;
 void main() {
 	vec4 worldPos = modelToWorld * vec4(modelPos, 1);
 	vec4 proj = mvp * worldPos;
+	proj_cur = proj;
+	vec4 worldPos_prev = modelToWorld * vec4(modelPos, 1);
+	proj_prev = mvp_prev * worldPos_prev;
 
 	gl_Position = proj;
 
@@ -35,6 +39,4 @@ void main() {
 	vec3 N = normalize(vec3(modelToWorld * vec4(normal, 0.0)));
 	TBN = mat3(T, B, N);
 
-	proj_cur = proj;
-	proj_prev = proj;
 }
