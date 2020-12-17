@@ -26,6 +26,9 @@ private:
 	float win_width, win_height;
 	float fov = 45.0f, near_dist = 0.1f, far_dist = 50.0f;
 
+	glm::mat4x4 mvp_centered_prev;
+	glm::mat4x4 mvp_prev;
+
 	void updateProj()
 	{
 		proj = glm::perspectiveRH(fov, win_width / win_height, near_dist, far_dist);
@@ -56,11 +59,21 @@ public:
 	{
 		return mvp;
 	}
-	glm::mat4x4 getMvp_Centered()
+	glm::mat4x4 getMvp_centered()
 	{
 		return mvp_centered;
 	}
-	float* getMvp_CenteredLoc()
+
+	float* getMvp_centered_prevLoc()
+	{
+		return &mvp_centered_prev[0][0];
+	}
+	float* getMvp_prevLoc()
+	{
+		return &mvp_prev[0][0];
+	}
+
+	float* getMvp_centeredLoc()
 	{
 		return &mvp_centered[0][0];
 	}
@@ -72,6 +85,7 @@ public:
 	{
 		return &pos[0];
 	}
+
 	glm::vec3 getPosition()
 	{
 		return pos;
@@ -83,6 +97,9 @@ public:
 
 	void updateMvp()
 	{
+		mvp_centered_prev = mvp_centered;
+		mvp_prev = mvp;
+
 		mvp_centered = proj * rot;
 		mvp = mvp_centered * translation;
 	}

@@ -30,8 +30,8 @@ in mat3 TBN;
 in vec4 proj_cur;
 in vec4 proj_prev;
 
-layout (location = 0) out vec3 color;
-layout (location = 1) out vec2 motion;
+layout(location = 0) out vec4 color;
+layout(location = 1) out vec2 motion;
 
 void main() {
 	vec3 normal_unnorm = vec3(texture2D(normalMap, texCoords));
@@ -61,7 +61,7 @@ void main() {
 
 	vec4 objectColor = texture2D(colorMap, texCoords);
 	rgb *= objectColor;
-	color = vec3(rgb);
+	color = rgb;
 
 	vec3 ndc_cur = (proj_cur / proj_cur.w).xyz;
     vec3 ndc_prev = (proj_prev / proj_prev.w).xyz;

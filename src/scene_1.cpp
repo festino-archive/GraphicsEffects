@@ -38,7 +38,7 @@ GLuint program;
 GLuint mvpLoc, cameraLoc, lightsLoc;
 
 GLuint program_mb;
-GLuint m_fbo, mb_colorBuffer, mb_motionBuffer, mb_depthBuffer;
+GLuint mb_fbo, mb_colorBuffer, mb_motionBuffer, mb_depthBuffer;
 
 
 Skybox skybox;
@@ -293,6 +293,12 @@ void clearDepthRespectsStencil(float depth)
     glDepthFunc(GL_LEQUAL);
 }
 
+void setDrawBuffers(int n)
+{
+    GLenum DrawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+    glDrawBuffers(n, DrawBuffers);
+}
+
 void renderHUD()
 {
     glUseProgram(program_2d);
@@ -461,7 +467,7 @@ void renderPortalFace(Model* model, std::array<glm::vec3, 3> exit_portal_plane, 
     renderRegularObjects();
 
     // render mirrored skybox
-    skybox.draw(pos, &mvp_centered[0][0]);
+    skybox.draw(pos, &mvp_centered[0][0], &mvp_centered[0][0]); // TODO fix prev
 
     //renderFog(pos, mvp);
     renderBillboards(mvp, mv);
@@ -483,7 +489,7 @@ void renderPortalFace(Model* model, std::array<glm::vec3, 3> exit_portal_plane, 
 
 void display()
 {
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mb_fbo);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     camera.updateMvp();
@@ -530,9 +536,10 @@ void display()
         renderPortalFace(portal2->model, portal1->getPoints(), camera.getProj(), glm::transpose(rot2), pos2);
     }
 
-    skybox.draw(camera.getPosition(), camera.getMvp_CenteredLoc());
+    skybox.draw(camera.getPosition(), camera.getMvp_centeredLoc(), camera.getMvp_centered_prevLoc());
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(program_mb);
     glUniform1i(glGetUniformLocation(program_mb, "colorBuffer"), mb_colorBuffer);
@@ -577,15 +584,15 @@ void initCamera()
 
 void initMBBuffer()
 {
-    glGenFramebuffers(1, &m_fbo);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
+    glGenFramebuffers(1, &mb_fbo);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mb_fbo);
 
     glGenTextures(1, &mb_colorBuffer);
     glGenTextures(1, &mb_motionBuffer);
     glGenTextures(1, &mb_depthBuffer);
 
     glBindTexture(GL_TEXTURE_2D, mb_colorBuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, win_width, win_height, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, win_width, win_height, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mb_colorBuffer, 0);
@@ -602,11 +609,9 @@ void initMBBuffer()
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, mb_depthBuffer, 0);
 
-    GLenum DrawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+    setDrawBuffers(2);
 
-    glDrawBuffers(sizeof(DrawBuffers) / sizeof(DrawBuffers[0]), DrawBuffers);
-
-    GLuint status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    GLuint status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE) {
         printf("FB error: %x\n", status); // 8cdd = GL_FRAMEBUFFER_UNSUPPORTED, 8cd6 = GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT
     }
