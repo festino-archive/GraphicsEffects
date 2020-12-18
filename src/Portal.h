@@ -18,7 +18,7 @@ public:
 		this->model = model;
 	}*/
 
-	Portal(Plane plane, glm::vec3 center, glm::vec3 x, glm::vec3 y, int count, glm::vec2* triangle_shape)
+	Portal(Plane plane, glm::vec3 center, glm::vec3 x, glm::vec3 y, int count, glm::vec2* triangle_shape, float thickness = 0.1f)
 		: plane(plane)
 	{
 		glm::vec3 zero = plane.project(glm::vec3());
@@ -49,6 +49,57 @@ public:
 
 			vertices[i] = { point, {0, 0} };
 		}
+		if (thickness > 0.001f)
+		{
+			float half_thickness = thickness * 0.5;
+			// TODO remove duplcates and internal
+			int count_old = count;
+			Vertex* vertices_old = vertices;
+			count = 8 * count_old;
+			vertices = new Vertex[count];
+			for (int i = 0; i < count_old; i += 3)
+			{
+				int j0 = 8 * i;
+				int j1 = j0 + 3;
+				vertices[j0] = vertices_old[i];
+				vertices[j0 + 1] = vertices_old[i + 1];
+				vertices[j0 + 2] = vertices_old[i + 2];
+				vertices[j0].position += half_thickness * normal;
+				vertices[j0 + 1].position += half_thickness * normal;
+				vertices[j0 + 2].position += half_thickness * normal;
+				vertices[j1] = vertices_old[i];
+				vertices[j1 + 1] = vertices_old[i + 1];
+				vertices[j1 + 2] = vertices_old[i + 2];
+				vertices[j1].position -= half_thickness * normal;
+				vertices[j1 + 1].position -= half_thickness * normal;
+				vertices[j1 + 2].position -= half_thickness * normal;
+				int j = j0 + 6;
+				vertices[j + 0] = vertices[j0 + 0];
+				vertices[j + 1] = vertices[j0 + 1];
+				vertices[j + 2] = vertices[j1 + 1];
+				j += 3;
+				vertices[j + 0] = vertices[j0 + 0];
+				vertices[j + 1] = vertices[j1 + 0];
+				vertices[j + 2] = vertices[j1 + 1];
+				j += 3;
+				vertices[j + 0] = vertices[j0 + 0];
+				vertices[j + 1] = vertices[j1 + 0];
+				vertices[j + 2] = vertices[j1 + 2];
+				j += 3;
+				vertices[j + 0] = vertices[j0 + 0];
+				vertices[j + 1] = vertices[j0 + 2];
+				vertices[j + 2] = vertices[j1 + 2];
+				j += 3;
+				vertices[j + 0] = vertices[j0 + 1];
+				vertices[j + 1] = vertices[j0 + 2];
+				vertices[j + 2] = vertices[j1 + 2];
+				j += 3;
+				vertices[j + 0] = vertices[j0 + 1];
+				vertices[j + 1] = vertices[j1 + 1];
+				vertices[j + 2] = vertices[j1 + 2];
+			}
+			delete[] vertices_old;
+		}
 		model = new Model(count, vertices);
 	}
 
@@ -66,6 +117,11 @@ public:
 		glm::vec2 proj_intersection = (dist1 / dist_sum) * proj1 + (dist2 / dist_sum) * proj2;
 		return min_plane_point.x < proj_intersection.x && proj_intersection.x < max_plane_point.x
 			&& min_plane_point.y < proj_intersection.y && proj_intersection.y < max_plane_point.y;
+	}
+
+	bool canSee(Camera& camera)
+	{
+		return true;
 	}
 
 	std::array<glm::vec3, 3> getPoints()

@@ -19,15 +19,15 @@ public:
 	{
 		glm::vec3 pos = cam.getPosition();
 		glm::mat4x4 mat = portal2->getLocalToWorld() * portal1->getWorldToLocal();
-		cam.teleport(mat * glm::vec4(pos, 1.0f));
-		cam.setAngle(glm::transpose(mat) * cam.getRot());
+		glm::mat4x4 new_rot = glm::transpose(mat) * cam.getRot();
+		cam.teleport(mat * glm::vec4(pos, 1.0f), new_rot);
 	}
 
 	void teleportTo1(Camera& cam)
 	{
 		glm::vec3 pos = cam.getPosition();
 		glm::mat4x4 mat = portal1->getLocalToWorld() * portal2->getWorldToLocal();
-		cam.teleport(mat * glm::vec4(pos, 1.0f));
-		cam.setAngle(glm::transpose(mat) * cam.getRot());
+		glm::mat4x4 new_rot = glm::transpose(mat) * cam.getRot();
+		cam.teleport(mat * glm::vec4(pos, 1.0f), new_rot);
 	}
 };

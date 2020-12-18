@@ -55,7 +55,7 @@ TexturedModel *rotating_1, *rotating_2, *rotating_3, *rotating_framed, *oscillat
 Camera camera = Camera(0, 0, glm::vec3(), 0, 0);
 float init_yaw = 0, init_pitch = 0;
 glm::vec3 init_pos = glm::vec3(0, 0, 4);
-float fov = 45.0f, near_dist = 0.1f, far_dist = 100.0f;
+float fov = 45.0f, near_dist = 0.05f, far_dist = 100.0f;
 
 constexpr float MICROSEC = 1.0f / 1000000;
 constexpr int TIMES_COUNT = 10;
@@ -563,20 +563,24 @@ void display()
         Portal *portal1 = portal->portal1;
         Portal *portal2 = portal->portal2;
         // build inversed transformation in order to easy get rot and pos
-        glm::mat4x4 mv1 = portal2->getLocalToWorld() * portal1->getWorldToLocal() * camLocalToWorld;
-        glm::vec3 pos1 = glm::vec3(mv1[3]);
-        glm::mat4x4 rot1 = mv1;
-        rot1[3][0] = rot1[3][1] = rot1[3][2] = 0;
-        renderPortalFace(portal1->model, portal2->getPoints(),
-            camera.getProj(), glm::transpose(rot1), pos1,
-            glm::transpose(rot1), pos1); // TODO fix prev
-        glm::mat4x4 mv2 = portal1->getLocalToWorld() * portal2->getWorldToLocal() * camLocalToWorld;
-        glm::vec3 pos2 = glm::vec3(mv2[3]);
-        glm::mat4x4 rot2 = mv2;
-        rot2[3][0] = rot2[3][1] = rot2[3][2] = 0;
-        renderPortalFace(portal2->model, portal1->getPoints(),
-            camera.getProj(), glm::transpose(rot2), pos2,
-            glm::transpose(rot2), pos2);
+        if (portal1->canSee(camera)) {
+            glm::mat4x4 mv1 = portal2->getLocalToWorld() * portal1->getWorldToLocal() * camLocalToWorld;
+            glm::vec3 pos1 = glm::vec3(mv1[3]);
+            glm::mat4x4 rot1 = mv1;
+            rot1[3][0] = rot1[3][1] = rot1[3][2] = 0;
+            renderPortalFace(portal1->model, portal2->getPoints(),
+                camera.getProj(), glm::transpose(rot1), pos1,
+                glm::transpose(rot1), pos1); // TODO fix prev
+        }
+        if (portal2->canSee(camera)) {
+            glm::mat4x4 mv2 = portal1->getLocalToWorld() * portal2->getWorldToLocal() * camLocalToWorld;
+            glm::vec3 pos2 = glm::vec3(mv2[3]);
+            glm::mat4x4 rot2 = mv2;
+            rot2[3][0] = rot2[3][1] = rot2[3][2] = 0;
+            renderPortalFace(portal2->model, portal1->getPoints(),
+                camera.getProj(), glm::transpose(rot2), pos2,
+                glm::transpose(rot2), pos2);
+        }
     }
     setDrawBuffers(2);
 

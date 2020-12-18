@@ -122,10 +122,18 @@ public:
 		setPos(to);
 	}
 
+	void teleport(glm::vec3 to, glm::mat4x4 rot_or_mv)
+	{
+		setPos(to);
+		setAngle(rot_or_mv);
+		updateMvp();
+		is_teleported = true;
+	}
+
 	void move(glm::vec3 to)
 	{
-		is_teleported = false;
 		setPos(to);
+		is_teleported = false;
 	}
 
 	glm::vec3 getRelative(float cameraX, float cameraY, float cameraZ)
