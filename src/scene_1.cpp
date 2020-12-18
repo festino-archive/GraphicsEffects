@@ -50,8 +50,7 @@ vector<PortalPair*> portals = vector<PortalPair*>();
 vector<Billboard*> billboards = vector<Billboard*>();
 Omnilight *movable_light;
 TexturedModel* player_model;
-Model *mirror_cube[6];
-TexturedModel *rotating_1, *rotating_2, *rotating_3, *rotating_framed, *jumping_1, *oscillating_1, *oscillating_2;
+TexturedModel *rotating_1, *rotating_2, *rotating_3, *rotating_framed, *oscillating_1, *oscillating_2;
 
 Camera camera = Camera(0, 0, glm::vec3(), 0, 0);
 float init_yaw = 0, init_pitch = 0;
@@ -86,6 +85,8 @@ void mouseMove(int mx, int my) {
 
 void moveModels(float full_time, float delta_time)
 {
+    player_model->model->setTransform(camera.getPosition(), glm::transpose(camera.getRot()));
+
     rotating_1->model->setRotation(glm::rotate(full_time, glm::vec3(0, 1, 0)));
     rotating_2->model->setRotation(glm::rotate(3 * full_time, glm::vec3(0, 1, 0)));
     rotating_3->model->setRotation(glm::rotate(10 * full_time, glm::vec3(0, 1, 0)));
@@ -101,6 +102,10 @@ void moveModels(float full_time, float delta_time)
 
 void loadMovingModels()
 {
+    Texture* player_texture = new Texture(program, "player.png", "player_normal.png");
+    player_model = makeCube(1, camera.getPosition(), glm::transpose(camera.getRot()), player_texture);
+    player_model->model->setScale({ 0.25, 0.5, 0.25 });
+
     Texture* smooth_texture = new Texture(program, "white.png", "smooth_normal.png");
     rotating_1 = makeCube(1, { 8, 0, -7 }, glm::identity<glm::mat4>(), smooth_texture);
     rotating_2 = makeCube(1, { 8, 0, -9 }, glm::identity<glm::mat4>(), smooth_texture);
@@ -108,7 +113,6 @@ void loadMovingModels()
     models.push_back(rotating_1);
     models.push_back(rotating_2);
     models.push_back(rotating_3);
-    //mirror_cube
 
     //rotating_frame
     TexturedModel* d = makeCube(0.7, { 8.5, -0.7, -14 }, glm::identity<glm::mat4>(), smooth_texture);
@@ -135,7 +139,6 @@ void loadMovingModels()
     oscillating_2 = makeCube(1, { 15, 0, -14 }, glm::identity<glm::mat4>(), smooth_texture);
     models.push_back(oscillating_1);
     models.push_back(oscillating_2);
-    //jumping_1 = makeCube(1, { 0, 0, -1.5 }, glm::identity<glm::mat4>(), smooth_texture);
 }
 
 void loadModels()
@@ -153,9 +156,9 @@ void loadModels()
     model = makeCube(1, { 3.5, 0, 2 }, glm::identity<glm::mat4>(), only_normals);
     models.push_back(model);
 
-    //Texture* face_texture = new Texture(program, "white.png", "face.png");
-    //model = makeCube(1, { -52, 0.5, 52 }, glm::identity<glm::mat4>(), face_texture);
-    //models.push_back(model);
+    Texture* face_texture = new Texture(program, "white.png", "sampledNormals.png");
+    model = makeCube(1, { -52, 0.5, 52 }, glm::identity<glm::mat4>(), face_texture);
+    models.push_back(model);
 
     texture = new Texture(program, "brick.png", "brick_normal.png");
     float size = 1;
@@ -483,6 +486,7 @@ void renderPortalFace(Model* model, std::array<glm::vec3, 3> exit_portal_plane,
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, &mvp[0][0]);
     glUniformMatrix4fv(mvp_prevLoc, 1, GL_FALSE, &mvp_prev[0][0]);
     renderRegularObjects();
+    player_model->draw();
 
     // render mirrored skybox
     skybox.draw(pos, &mvp_centered[0][0], &mvp_centered_prev[0][0]);

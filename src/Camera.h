@@ -147,19 +147,21 @@ public:
 		move(pos + glm::vec3(hor_cos * right - hor_sin * forward, up, hor_cos * forward + hor_sin * right));
 	}
 
-	void setAngle(glm::mat4x4 rot)
+	void setAngle(glm::mat4x4 mv)
 	{
-		float new_yaw = atan2(rot[0][1], rot[0][0]);
-		float new_pitch = atan2(-rot[0][2], sqrt(rot[1][2] * rot[1][2] + rot[2][2] * rot[2][2]));
-		float new_roll = atan2(rot[1][2], rot[2][2]);
-		/* z-y-x
-		float new_yaw = atan2(rot[0][1], rot[0][0]);
-		float new_pitch = atan2(-rot[0][2], sqrt(rot[1][2] * rot[1][2] + rot[2][2] * rot[2][2]));
-		float new_roll = atan2(rot[1][2], rot[2][2]);*/
-		/* z-x-z
-		float new_yaw = atan2(rot[0][2], rot[1][2]);
-		float new_pitch = acos(rot[2][2]);
-		float new_roll = -atan2(rot[2][0], rot[2][1]);*/
+		/*
+		// z-y-x
+		float new_yaw = atan2(mv[0][1], mv[0][0]);
+		float new_pitch = atan2(-mv[0][2], sqrt(mv[1][2] * mv[1][2] + mv[2][2] * mv[2][2]));
+		float new_roll = atan2(mv[1][2], mv[2][2]);
+		// z-x-z
+		float new_yaw = atan2(mv[0][2], mv[1][2]);
+		float new_pitch = acos(mv[2][2]);
+		float new_roll = -atan2(mv[2][0], mv[2][1]);
+		*/
+		float new_yaw = atan2(mv[2][0], mv[0][0]);
+		float new_pitch = atan2(mv[1][2], mv[1][1]);
+		float new_roll = asin(-mv[1][0]);
 		setAngle(new_yaw, new_pitch);
 	}
 
@@ -180,6 +182,9 @@ public:
 		rot = glm::rotate(pitch, glm::vec3(1, 0, 0));
 		rot = rot * glm::rotate(roll, glm::vec3(0, 0, 1));
 		rot = rot * glm::rotate(yaw, glm::vec3(0, 1, 0));
+		/*std::cout << to_string(glm::rotate(pitch, glm::vec3(1, 0, 0))) << " 1" << std::endl;
+		std::cout << to_string(glm::rotate(roll, glm::vec3(0, 0, 1))) << " 2" << std::endl;
+		std::cout << to_string(glm::rotate(yaw, glm::vec3(0, 1, 0))) << " 3" << std::endl;*/
 	}
 
 	void addAngle(float dYaw, float dPitch)

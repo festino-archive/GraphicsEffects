@@ -20,7 +20,7 @@ public:
 		glm::vec3 pos = cam.getPosition();
 		glm::mat4x4 mat = portal2->getLocalToWorld() * portal1->getWorldToLocal();
 		cam.teleport(mat * glm::vec4(pos, 1.0f));
-		//cam.setAngle(mat);
+		cam.setAngle(glm::transpose(mat) * cam.getRot());
 	}
 
 	void teleportTo1(Camera& cam)
@@ -28,6 +28,6 @@ public:
 		glm::vec3 pos = cam.getPosition();
 		glm::mat4x4 mat = portal1->getLocalToWorld() * portal2->getWorldToLocal();
 		cam.teleport(mat * glm::vec4(pos, 1.0f));
-		//cam.setAngle(mat);
+		cam.setAngle(glm::transpose(mat) * cam.getRot());
 	}
 };
